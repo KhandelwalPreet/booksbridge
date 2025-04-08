@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -75,10 +74,25 @@ const ListBook = () => {
         return;
       }
 
-      const { error } = await supabase.from('inventory').insert({
-        ...data,
-        user_id: authData.session.user.id, // Set the user_id from the authenticated user
-      });
+      // Ensure all required fields are present and properly formatted
+      const bookData = {
+        title: data.title,
+        author: data.author,
+        isbn: data.isbn,
+        publisher: data.publisher || null,
+        published_date: data.published_date || null,
+        description: data.description || null,
+        categories: data.categories || null,
+        page_count: data.page_count || null,
+        condition: data.condition, // This is required
+        condition_notes: data.condition_notes || null,
+        lending_duration: data.lending_duration,
+        pickup_preferences: data.pickup_preferences || null,
+        thumbnail_url: data.thumbnail_url || null,
+        user_id: authData.session.user.id // Set the user_id from the authenticated user
+      };
+
+      const { error } = await supabase.from('inventory').insert(bookData);
 
       if (error) {
         throw error;
