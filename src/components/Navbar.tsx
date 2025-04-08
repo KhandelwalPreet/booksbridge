@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Navbar = () => {
   return (
@@ -25,8 +26,13 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          <Button variant="outline" size="sm" className="border-book-warm text-book-warm hover:bg-book-warm/10">
-            List a Book
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="border-book-warm text-book-warm hover:bg-book-warm/10"
+            asChild
+          >
+            <Link to="/list-book">List a Book</Link>
           </Button>
           <Button size="sm" className="bg-book-warm hover:bg-book-warm/90">
             Log In / Sign Up
