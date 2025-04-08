@@ -1,22 +1,27 @@
-
 import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
 import HeroSection from '@/components/HeroSection';
 import BookCarousel from '@/components/BookCarousel';
 import BookDetailModal from '@/components/BookDetailModal';
-import { 
-  mockBooks, 
-  getRecentlyAddedBooks, 
-  getMostRequestedBooks, 
-  getNearbyBooks,
-  getPopularAuthorsBooks,
-  getGenreBooks
-} from '@/data/mockBooks';
+import { useInventoryBooks } from '@/hooks/useInventoryBooks';
+import { mockBooks } from '@/data/mockBooks';
 
 const Index = () => {
   const [selectedBook, setSelectedBook] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Fetch books from inventory table
+  const { books: recentBooks, loading: loadingRecent } = useInventoryBooks(undefined, 12);
+  const { books: fictionBooks } = useInventoryBooks('Fiction', 12);
+  
+  // For now, we'll keep using mock data for these categories until we have
+  // proper data structure in the inventory table
+  const { 
+    getMostRequestedBooks, 
+    getNearbyBooks,
+    getPopularAuthorsBooks
+  } = require('@/data/mockBooks');
 
   const handleBookClick = (bookId: string) => {
     setSelectedBook(bookId);
@@ -37,38 +42,38 @@ const Index = () => {
         <HeroSection />
         
         <div className="container mx-auto px-4 py-8">
-          {/* Recently Added Books */}
+          {/* Recently Added Books - now from database! */}
           <BookCarousel 
             title="Recently Added Books" 
-            books={getRecentlyAddedBooks()}
+            books={recentBooks}
             onBookClick={handleBookClick}
           />
           
-          {/* Most Requested Titles */}
+          {/* Most Requested Titles - still using mock data */}
           <BookCarousel 
             title="Most Requested Titles" 
             books={getMostRequestedBooks()}
             onBookClick={handleBookClick}
           />
           
-          {/* Available Near You */}
+          {/* Available Near You - still using mock data */}
           <BookCarousel 
             title="Available Near You" 
             books={getNearbyBooks()}
             onBookClick={handleBookClick}
           />
           
-          {/* Popular Authors */}
+          {/* Popular Authors - still using mock data */}
           <BookCarousel 
             title="Popular Authors" 
             books={getPopularAuthorsBooks()}
             onBookClick={handleBookClick}
           />
           
-          {/* Fiction You May Like */}
+          {/* Fiction You May Like - now from database with 'Fiction' category filter! */}
           <BookCarousel 
             title="Fiction You May Like" 
-            books={getGenreBooks('Fiction')}
+            books={fictionBooks}
             onBookClick={handleBookClick}
           />
         </div>

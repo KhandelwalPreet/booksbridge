@@ -17,7 +17,7 @@ interface BookCarouselProps {
   onBookClick: (bookId: string) => void;
 }
 
-const BookCarousel = ({ title, books, onBookClick }: BookCarouselProps) => {
+const BookCarousel = ({ title, books = [], onBookClick }: BookCarouselProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const scrollLeft = () => {
@@ -67,14 +67,20 @@ const BookCarousel = ({ title, books, onBookClick }: BookCarouselProps) => {
         ref={scrollContainerRef}
         className="book-carousel flex gap-4 overflow-x-auto pb-4"
       >
-        {books.map(book => (
-          <BookCard 
-            key={book.id}
-            book={book}
-            onClick={() => onBookClick(book.id)}
-            showDistance={title.toLowerCase().includes('near you')}
-          />
-        ))}
+        {books && books.length > 0 ? (
+          books.map(book => (
+            <BookCard 
+              key={book.id}
+              book={book}
+              onClick={() => onBookClick(book.id)}
+              showDistance={title.toLowerCase().includes('near you')}
+            />
+          ))
+        ) : (
+          <div className="flex items-center justify-center w-full py-10 text-gray-500">
+            No books available in this category
+          </div>
+        )}
       </div>
     </div>
   );
