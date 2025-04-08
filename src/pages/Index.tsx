@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -5,7 +6,12 @@ import HeroSection from '@/components/HeroSection';
 import BookCarousel from '@/components/BookCarousel';
 import BookDetailModal from '@/components/BookDetailModal';
 import { useInventoryBooks } from '@/hooks/useInventoryBooks';
-import { mockBooks } from '@/data/mockBooks';
+import { 
+  mockBooks, 
+  getMostRequestedBooks, 
+  getNearbyBooks,
+  getPopularAuthorsBooks
+} from '@/data/mockBooks';
 
 const Index = () => {
   const [selectedBook, setSelectedBook] = useState<string | null>(null);
@@ -14,14 +20,6 @@ const Index = () => {
   // Fetch books from inventory table
   const { books: recentBooks, loading: loadingRecent } = useInventoryBooks(undefined, 12);
   const { books: fictionBooks } = useInventoryBooks('Fiction', 12);
-  
-  // For now, we'll keep using mock data for these categories until we have
-  // proper data structure in the inventory table
-  const { 
-    getMostRequestedBooks, 
-    getNearbyBooks,
-    getPopularAuthorsBooks
-  } = require('@/data/mockBooks');
 
   const handleBookClick = (bookId: string) => {
     setSelectedBook(bookId);
