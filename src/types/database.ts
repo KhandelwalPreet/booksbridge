@@ -43,3 +43,13 @@ export interface BookListing extends InventoryItem {
   // UI display properties
   status?: string;
 }
+
+export interface UserProfile {
+  id: string;
+  name: string;
+  gender: string;
+  latitude: number;
+  longitude: number;
+  created_at: string;
+  updated_at?: string;
+}

@@ -33,7 +33,7 @@ const Index = () => {
   const bookDetails = selectedBook ? mockBooks.find(book => book.id === selectedBook) : null;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#F4F6F8]">
       <Navbar />
       
       <main className="flex-grow pt-16">

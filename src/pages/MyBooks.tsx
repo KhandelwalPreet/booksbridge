@@ -126,29 +126,31 @@ const MyBooks = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col bg-[#F4F6F8]">
       <Navbar />
       
       <main className="flex-grow pt-24 pb-16 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-book-maroon">Your Listed Books</h1>
+            <h1 className="text-3xl font-bold text-[#2E86AB]">Your Listed Books</h1>
             <Button 
               onClick={() => setModalOpen(true)} 
-              className="bg-book-warm hover:bg-book-warm/90"
+              className="bg-[#F18F01] hover:bg-[#F18F01]/90"
             >
               <Plus className="mr-2 h-4 w-4" /> Add a New Book
             </Button>
           </div>
           
-          <BooksTable 
-            books={books} 
-            loading={loading} 
-            onDelete={handleDeleteBook} 
-            onEdit={(id) => {
-              toast("Edit functionality coming soon!");
-            }}
-          />
+          <div className="bg-white rounded-2xl shadow-md p-6 border border-[#E5E7EB]">
+            <BooksTable 
+              books={books} 
+              loading={loading} 
+              onDelete={handleDeleteBook} 
+              onEdit={(id) => {
+                toast("Edit functionality coming soon!");
+              }}
+            />
+          </div>
         </div>
       </main>
       

@@ -69,6 +69,18 @@ export default {
 					'cream': '#F5F5DC',
 					'dark': '#333333',
 					'blue': '#6082B6',
+				},
+				// Smart Trust color palette
+				st: {
+					'primary': '#2E86AB',     // Calming blue
+					'accent': '#F18F01',      // Soft orange for CTAs
+					'background': '#F4F6F8',  // Clean off-white
+					'surface': '#FFFFFF',     // White for card contrast
+					'text-primary': '#1C1C1C', // Strong dark gray
+					'text-muted': '#6B7280',  // Cool gray for subtext
+					'border': '#E5E7EB',      // Soft border lines
+					'success': '#27AE60',     // Green for success states
+					'error': '#E74C3C',       // Red for errors & alerts
 				}
 			},
 			borderRadius: {
@@ -97,6 +109,10 @@ export default {
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
 				'accordion-up': 'accordion-up 0.2s ease-out'
+			},
+			boxShadow: {
+				'card': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+				'card-hover': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
 			}
 		}
 	},

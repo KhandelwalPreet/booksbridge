@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -44,7 +45,6 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
   const [bookDetails, setBookDetails] = useState<BookDetails | null>(null);
   const [condition, setCondition] = useState('Good');
   const [notes, setNotes] = useState('');
-  const [lendingDuration, setLendingDuration] = useState('14');
   const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -172,14 +172,14 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
         bookId = newBookData[0].id;
       }
       
-      // Now create the inventory listing
+      // Now create the inventory listing with fixed lending duration of 14 days
       const inventoryData = {
         book_id: bookId,
         lender_id: sessionData.session.user.id,
         condition: condition,
         condition_notes: notes || null,
         available: true,
-        lending_duration: parseInt(lendingDuration),
+        lending_duration: 14, // Fixed at 14 days as requested
         pickup_preferences: null
       };
       
@@ -202,7 +202,7 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
           page_count: bookDetails.pageCount || null,
           condition: condition,
           condition_notes: notes || null,
-          lending_duration: parseInt(lendingDuration),
+          lending_duration: 14, // Fixed at 14 days as requested
           thumbnail_url: bookDetails.imageLinks?.thumbnail || null,
           user_id: sessionData.session.user.id
         };
@@ -219,7 +219,6 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
       setIsbn('');
       setCondition('Good');
       setNotes('');
-      setLendingDuration('14');
       setConfirmed(false);
       onBookAdded();
     } catch (error) {
@@ -245,7 +244,7 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
               className="pr-20"
             />
             <Button 
-              className="absolute right-0 top-0 h-full rounded-l-none"
+              className="absolute right-0 top-0 h-full rounded-l-none bg-[#2E86AB] hover:bg-[#2E86AB]/90"
               onClick={fetchBookByISBN}
               disabled={loading || isbn.length < 10}
             >
@@ -259,7 +258,7 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
 
       {/* Book Details Card */}
       {bookDetails && (
-        <Card className="mb-6">
+        <Card className="mb-6 shadow-md border border-[#E5E7EB] rounded-2xl">
           <CardContent className="pt-6">
             <div className="flex flex-col md:flex-row gap-6">
               {/* Book Cover */}
@@ -281,29 +280,29 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
               
               {/* Book Info */}
               <div className="w-full md:w-2/3">
-                <h3 className="text-xl font-semibold">{bookDetails.title}</h3>
-                <p className="text-gray-600">by {bookDetails.authors ? bookDetails.authors.join(', ') : 'Unknown Author'}</p>
+                <h3 className="text-xl font-semibold text-[#1C1C1C]">{bookDetails.title}</h3>
+                <p className="text-[#6B7280]">by {bookDetails.authors ? bookDetails.authors.join(', ') : 'Unknown Author'}</p>
                 
                 <div className="grid grid-cols-2 gap-2 mt-4">
                   <div>
-                    <p className="text-sm text-gray-500">Publisher</p>
+                    <p className="text-sm text-[#6B7280]">Publisher</p>
                     <p className="text-sm">{bookDetails.publisher || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Published Date</p>
+                    <p className="text-sm text-[#6B7280]">Published Date</p>
                     <p className="text-sm">{bookDetails.publishedDate || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Pages</p>
+                    <p className="text-sm text-[#6B7280]">Pages</p>
                     <p className="text-sm">{bookDetails.pageCount || 'N/A'}</p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Categories</p>
+                    <p className="text-sm text-[#6B7280]">Categories</p>
                     <p className="text-sm">{bookDetails.categories ? bookDetails.categories.join(', ') : 'N/A'}</p>
                   </div>
                 </div>
 
-                <p className="text-sm text-gray-500 mt-4">Description</p>
+                <p className="text-sm text-[#6B7280] mt-4">Description</p>
                 <p className="text-sm line-clamp-3">{bookDetails.description || 'No description available'}</p>
               </div>
             </div>
@@ -314,7 +313,7 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
       {/* Book Condition and Notes */}
       {bookDetails && (
         <div className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             <div className="space-y-2">
               <Label htmlFor="condition">Book Condition</Label>
               <Select value={condition} onValueChange={setCondition}>
@@ -331,23 +330,6 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
                 </SelectContent>
               </Select>
             </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="lending-duration">Lending Duration (days)</Label>
-              <Select value={lendingDuration} onValueChange={setLendingDuration}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select lending period" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7">7 days</SelectItem>
-                  <SelectItem value="14">14 days</SelectItem>
-                  <SelectItem value="21">21 days</SelectItem>
-                  <SelectItem value="30">30 days</SelectItem>
-                  <SelectItem value="60">60 days</SelectItem>
-                  <SelectItem value="90">90 days</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
           
           <div className="space-y-2">
@@ -357,6 +339,7 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
               placeholder="Add any specific details about the condition of your book"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
+              className="resize-none"
             />
           </div>
 
@@ -375,7 +358,7 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
           </div>
 
           <Button 
-            className="w-full"
+            className="w-full bg-[#F18F01] hover:bg-[#F18F01]/90 mt-4"
             onClick={addBook}
             disabled={submitting || !confirmed}
           >

@@ -21,7 +21,53 @@ export const useInventoryBooks = (category?: string, limit: number = 10) => {
     const fetchBooks = async () => {
       setLoading(true);
       try {
-        // First try to fetch from the new database structure
+        // First fetch from books_db directly
+        let query = supabase
+          .from('books_db')
+          .select('*');
+        
+        // Add category filter if provided
+        if (category) {
+          query = query.ilike('categories', `%${category}%`);
+        }
+        
+        // Add limit
+        query = query.limit(limit);
+        
+        const { data, error } = await query;
+        
+        if (error) {
+          console.error('Error fetching from books_db:', error);
+          
+          // Fall back to the old method if books_db fetch fails
+          fallbackToInventory();
+          return;
+        }
+        
+        if (data && data.length > 0) {
+          // Transform data to match BookCard props
+          const transformedData = data.map((book: BookDb) => ({
+            id: book.id,
+            title: book.title || 'Unknown Title',
+            author: book.author || 'Unknown Author',
+            coverImage: book.cover_image_url || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=2730&ixlib=rb-4.0.3',
+          }));
+          
+          setBooks(transformedData);
+        } else {
+          // If no data found in books_db, try the fallback
+          fallbackToInventory();
+        }
+      } catch (err) {
+        console.error('Error in useInventoryBooks:', err);
+        setError(err instanceof Error ? err.message : 'Unknown error');
+        setLoading(false);
+      }
+    };
+
+    const fallbackToInventory = async () => {
+      try {
+        // First try the new inventory structure
         const { data: inventoryNewData, error: inventoryNewError } = await supabase
           .from('inventory_new')
           .select(`
@@ -34,7 +80,6 @@ export const useInventoryBooks = (category?: string, limit: number = 10) => {
           .eq('available', true)
           .limit(limit);
         
-        // If the query succeeds but no data is found, or if the query fails, fall back to old structure
         if (inventoryNewError || !inventoryNewData || inventoryNewData.length === 0) {
           console.log('Falling back to old inventory table');
           
@@ -60,8 +105,6 @@ export const useInventoryBooks = (category?: string, limit: number = 10) => {
             title: book.title || 'Unknown Title',
             author: book.author || 'Unknown Author',
             coverImage: book.thumbnail_url || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=2730&ixlib=rb-4.0.3',
-            // For now, we don't have distance data in our table
-            // This could be calculated later based on user location
           }));
           
           setBooks(transformedData);
@@ -73,7 +116,6 @@ export const useInventoryBooks = (category?: string, limit: number = 10) => {
               title: item.book?.title || 'Unknown Title',
               author: item.book?.author || 'Unknown Author',
               coverImage: item.book?.cover_image_url || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=2730&ixlib=rb-4.0.3',
-              // Distance data not available yet
             };
           });
           
@@ -89,7 +131,7 @@ export const useInventoryBooks = (category?: string, limit: number = 10) => {
           setBooks(filteredData);
         }
       } catch (err) {
-        console.error('Error fetching books:', err);
+        console.error('Error in fallback fetch:', err);
         setError(err instanceof Error ? err.message : 'Unknown error');
       } finally {
         setLoading(false);
