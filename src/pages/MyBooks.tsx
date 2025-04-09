@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { useToast } from 'sonner';
+import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import Navbar from '@/components/Navbar';
 import Footer from '@/components/Footer';
@@ -25,7 +24,6 @@ const MyBooks = () => {
   const [books, setBooks] = useState<BookData[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
-  const toast = useToast();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -57,11 +55,9 @@ const MyBooks = () => {
       
       if (error) throw error;
       
-      // Map status based on lending state (this is a simplified version)
-      // In a real application, you'd need a separate table to track lending status
       const booksWithStatus = data.map((book: any) => ({
         ...book,
-        status: 'Listed' // Default status
+        status: 'Listed'
       }));
       
       setBooks(booksWithStatus);
@@ -116,8 +112,6 @@ const MyBooks = () => {
             loading={loading} 
             onDelete={handleDeleteBook} 
             onEdit={(id) => {
-              // Edit functionality could be implemented here
-              // For now, we'll just show a toast
               toast("Edit functionality coming soon!");
             }}
           />
