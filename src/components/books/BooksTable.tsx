@@ -13,7 +13,7 @@ interface BooksTableProps {
   onEdit: (id: string) => void;
 }
 
-const BooksTable = ({ books, loading, onDelete, onEdit }: BooksTableProps) => {
+const BooksTable = ({ books, loading, onEdit, onDelete }: BooksTableProps) => {
   if (loading) {
     return (
       <div className="text-center py-10">
@@ -64,10 +64,10 @@ const BooksTable = ({ books, loading, onDelete, onEdit }: BooksTableProps) => {
             <TableRow key={book.id}>
               <TableCell>
                 <div className="h-16 w-12 bg-gray-200 rounded overflow-hidden">
-                  {book.thumbnail_url || (book.book?.cover_image_url) ? (
+                  {book.book?.cover_image_url || book.thumbnail_url ? (
                     <img
-                      src={book.thumbnail_url || book.book?.cover_image_url}
-                      alt={`Cover of ${book.title || book.book?.title}`}
+                      src={book.book?.cover_image_url || book.thumbnail_url}
+                      alt={`Cover of ${book.book?.title || book.title}`}
                       className="h-full w-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=2730&ixlib=rb-4.0.3';
@@ -80,9 +80,9 @@ const BooksTable = ({ books, loading, onDelete, onEdit }: BooksTableProps) => {
                   )}
                 </div>
               </TableCell>
-              <TableCell className="font-medium">{book.title || book.book?.title}</TableCell>
-              <TableCell>{book.author || book.book?.author}</TableCell>
-              <TableCell className="font-mono text-xs">{book.isbn || book.book?.isbn_13 || book.book?.isbn_10 || 'N/A'}</TableCell>
+              <TableCell className="font-medium">{book.book?.title || book.title}</TableCell>
+              <TableCell>{book.book?.author || book.author}</TableCell>
+              <TableCell className="font-mono text-xs">{book.book?.isbn_13 || book.book?.isbn_10 || book.isbn || 'N/A'}</TableCell>
               <TableCell>{book.condition}</TableCell>
               <TableCell>
                 <Badge variant="outline" className={`${getStatusColor(book.status || 'Listed')}`}>

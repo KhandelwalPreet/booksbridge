@@ -43,7 +43,7 @@ const MyBooks = () => {
         .from('inventory_new')
         .select(`
           *,
-          book:book_id(
+          book:books_db!book_id(
             id, title, author, isbn_10, isbn_13, cover_image_url
           )
         `)

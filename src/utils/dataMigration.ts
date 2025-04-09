@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 /**
@@ -37,20 +38,22 @@ export const migrateBookToNewStructure = async (inventoryId: string) => {
       bookDbId = existingBooks.id;
     } else {
       // Create new entry in books_db
+      const bookData = {
+        title: oldBookData.title,
+        author: oldBookData.author,
+        isbn_13: oldBookData.isbn,
+        publisher: oldBookData.publisher,
+        published_date: oldBookData.published_date,
+        description: oldBookData.description,
+        categories: oldBookData.categories,
+        page_count: oldBookData.page_count,
+        cover_image_url: oldBookData.thumbnail_url
+      };
+      
       const { data: newBookData, error: insertError } = await supabase
         .from('books_db')
-        .insert({
-          title: oldBookData.title,
-          author: oldBookData.author,
-          isbn_13: oldBookData.isbn,
-          publisher: oldBookData.publisher,
-          published_date: oldBookData.published_date,
-          description: oldBookData.description,
-          categories: oldBookData.categories,
-          page_count: oldBookData.page_count,
-          cover_image_url: oldBookData.thumbnail_url
-        })
-        .select()
+        .insert(bookData)
+        .select('id')
         .single();
 
       if (insertError || !newBookData) {
@@ -62,18 +65,20 @@ export const migrateBookToNewStructure = async (inventoryId: string) => {
     }
 
     // Create new entry in inventory_new
+    const inventoryData = {
+      book_id: bookDbId,
+      lender_id: oldBookData.user_id,
+      condition: oldBookData.condition,
+      condition_notes: oldBookData.condition_notes,
+      available: true, // Default to available
+      lending_duration: oldBookData.lending_duration,
+      pickup_preferences: oldBookData.pickup_preferences
+    };
+    
     const { data: newInventory, error: inventoryError } = await supabase
       .from('inventory_new')
-      .insert({
-        book_id: bookDbId,
-        lender_id: oldBookData.user_id,
-        condition: oldBookData.condition,
-        condition_notes: oldBookData.condition_notes,
-        available: true, // Default to available
-        lending_duration: oldBookData.lending_duration,
-        pickup_preferences: oldBookData.pickup_preferences
-      })
-      .select()
+      .insert(inventoryData)
+      .select('id')
       .single();
 
     if (inventoryError) {

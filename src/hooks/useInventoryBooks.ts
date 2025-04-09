@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
+import { BookDb, InventoryItem } from '@/types/database';
 
 type BookData = {
   id: string;
@@ -21,11 +22,12 @@ export const useInventoryBooks = (category?: string, limit: number = 10) => {
       setLoading(true);
       try {
         // First try to fetch from the new database structure
-        let { data: inventoryNewData, error: inventoryNewError } = await supabase
+        const { data: inventoryNewData, error: inventoryNewError } = await supabase
           .from('inventory_new')
           .select(`
             id,
-            book:book_id(
+            book_id,
+            book:books_db!book_id(
               id, title, author, cover_image_url, categories
             )
           `)
@@ -66,21 +68,22 @@ export const useInventoryBooks = (category?: string, limit: number = 10) => {
         } else {
           // We have data from the new structure, transform it
           const transformedData = inventoryNewData.map(item => {
-            const book = item.book;
             return {
               id: item.id,
-              title: book?.title || 'Unknown Title',
-              author: book?.author || 'Unknown Author',
-              coverImage: book?.cover_image_url || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=2730&ixlib=rb-4.0.3',
+              title: item.book?.title || 'Unknown Title',
+              author: item.book?.author || 'Unknown Author',
+              coverImage: item.book?.cover_image_url || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=2730&ixlib=rb-4.0.3',
               // Distance data not available yet
             };
           });
           
           // If category is specified, filter by category
           const filteredData = category 
-            ? transformedData.filter(book => 
-                (book.book?.categories && book.book.categories.toLowerCase().includes(category.toLowerCase()))
-              )
+            ? transformedData.filter(book => {
+                const bookItem = inventoryNewData.find(item => item.id === book.id);
+                return bookItem?.book?.categories && 
+                       bookItem.book.categories.toLowerCase().includes(category.toLowerCase());
+              })
             : transformedData;
           
           setBooks(filteredData);

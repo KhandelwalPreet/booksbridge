@@ -233,28 +233,33 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
         
         try {
           let bookId;
-          let bookQuery;
+          let existingBookData = null;
+          let bookQueryError = null;
           
           if (book.details.isbn13) {
-            bookQuery = supabase
+            const query = await supabase
               .from('books_db')
               .select('id')
               .eq('isbn_13', book.details.isbn13);
+            existingBookData = query.data;
+            bookQueryError = query.error;
           } else if (book.details.isbn10) {
-            bookQuery = supabase
+            const query = await supabase
               .from('books_db')
               .select('id')
               .eq('isbn_10', book.details.isbn10);
+            existingBookData = query.data;
+            bookQueryError = query.error;
           } else {
             const authorString = book.details.authors.join(', ');
-            bookQuery = supabase
+            const query = await supabase
               .from('books_db')
               .select('id')
               .eq('title', book.details.title)
               .eq('author', authorString);
+            existingBookData = query.data;
+            bookQueryError = query.error;
           }
-          
-          const { data: existingBookData, error: bookQueryError } = await bookQuery;
           
           if (bookQueryError) {
             throw bookQueryError;

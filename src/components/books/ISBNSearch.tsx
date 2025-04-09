@@ -105,29 +105,33 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
       
       // First check if the book already exists in books_db
       let bookId;
-      let bookQuery;
+      let { data: existingBookData, error: bookQueryError } = null;
       
       if (isbn13) {
-        bookQuery = supabase
+        const query = await supabase
           .from('books_db')
           .select('id')
           .eq('isbn_13', isbn13);
+        existingBookData = query.data;
+        bookQueryError = query.error;
       } else if (isbn10) {
-        bookQuery = supabase
+        const query = await supabase
           .from('books_db')
           .select('id')
           .eq('isbn_10', isbn10);
+        existingBookData = query.data;
+        bookQueryError = query.error;
       } else {
         // If no ISBN available, check by title and author
         const authorString = bookDetails.authors ? bookDetails.authors.join(', ') : 'Unknown Author';
-        bookQuery = supabase
+        const query = await supabase
           .from('books_db')
           .select('id')
           .eq('title', bookDetails.title)
           .eq('author', authorString);
+        existingBookData = query.data;
+        bookQueryError = query.error;
       }
-      
-      const { data: existingBookData, error: bookQueryError } = await bookQuery;
       
       if (bookQueryError) {
         throw bookQueryError;

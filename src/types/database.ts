@@ -34,6 +34,12 @@ export interface InventoryItem {
 }
 
 export interface BookListing extends InventoryItem {
+  // Legacy properties for backward compatibility
+  title?: string;
+  author?: string;
+  isbn?: string;
+  thumbnail_url?: string;
+  
   // UI display properties
   status?: string;
 }
