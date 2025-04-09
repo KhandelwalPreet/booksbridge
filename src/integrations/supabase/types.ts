@@ -60,66 +60,6 @@ export type Database = {
         }
         Relationships: []
       }
-      inventory: {
-        Row: {
-          author: string | null
-          categories: string | null
-          condition: string
-          condition_notes: string | null
-          created_at: string | null
-          description: string | null
-          id: string
-          isbn: string
-          lending_duration: number
-          page_count: number | null
-          pickup_preferences: string | null
-          published_date: string | null
-          publisher: string | null
-          thumbnail_url: string | null
-          title: string
-          updated_at: string | null
-          user_id: string
-        }
-        Insert: {
-          author?: string | null
-          categories?: string | null
-          condition: string
-          condition_notes?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          isbn: string
-          lending_duration: number
-          page_count?: number | null
-          pickup_preferences?: string | null
-          published_date?: string | null
-          publisher?: string | null
-          thumbnail_url?: string | null
-          title: string
-          updated_at?: string | null
-          user_id: string
-        }
-        Update: {
-          author?: string | null
-          categories?: string | null
-          condition?: string
-          condition_notes?: string | null
-          created_at?: string | null
-          description?: string | null
-          id?: string
-          isbn?: string
-          lending_duration?: number
-          page_count?: number | null
-          pickup_preferences?: string | null
-          published_date?: string | null
-          publisher?: string | null
-          thumbnail_url?: string | null
-          title?: string
-          updated_at?: string | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       inventory_new: {
         Row: {
           available: boolean

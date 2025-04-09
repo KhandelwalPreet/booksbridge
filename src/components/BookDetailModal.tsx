@@ -23,13 +23,14 @@ interface BookDetailModalProps {
     pageCount: number;
     genre: string;
     language: string;
+    description?: string;
     listings: BookListing[];
   } | null;
 }
 
 const BookDetailModal = ({ isOpen, onClose, book }: BookDetailModalProps) => {
   const [selectedListing, setSelectedListing] = useState<string | null>(
-    book?.listings.length ? book.listings[0].id : null
+    book?.listings?.length ? book.listings[0].id : null
   );
 
   if (!book) return null;
@@ -66,6 +67,12 @@ const BookDetailModal = ({ isOpen, onClose, book }: BookDetailModalProps) => {
               <p className="text-muted-foreground">{book.author}</p>
             </div>
             
+            {book.description && (
+              <div className="text-sm text-muted-foreground max-h-32 overflow-y-auto">
+                <p>{book.description}</p>
+              </div>
+            )}
+            
             <div className="grid grid-cols-2 gap-2 text-sm">
               <div>
                 <span className="text-muted-foreground">Pages:</span> {book.pageCount}
@@ -85,7 +92,7 @@ const BookDetailModal = ({ isOpen, onClose, book }: BookDetailModalProps) => {
                   <p className="font-medium">{currentListing?.lenderName}</p>
                   <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-3 w-3 mr-1" />
-                    <span>{currentListing?.distance} away</span>
+                    <span>{currentListing?.distance}</span>
                   </div>
                 </div>
                 <Button className="bg-book-warm hover:bg-book-warm/90">

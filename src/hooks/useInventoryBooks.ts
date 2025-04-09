@@ -22,7 +22,7 @@ export const useInventoryBooks = (
     try {
       setLoading(true);
       
-      // First attempt to use the new table structure with joined book data
+      // Query inventory_new table with joined book data
       let query = supabase
         .from('inventory_new')
         .select(`
@@ -33,7 +33,7 @@ export const useInventoryBooks = (
       
       // Apply category filter if provided
       if (category) {
-        query = query.like('book.categories', `%${category}%`);
+        query = query.filter('book.categories', 'ilike', `%${category}%`);
       }
       
       // Apply limit if provided
@@ -41,11 +41,16 @@ export const useInventoryBooks = (
         query = query.limit(limit);
       }
       
-      const { data: newInventoryData, error: newError } = await query;
+      // Order by most recent
+      query = query.order('created_at', { ascending: false });
+      
+      const { data: inventoryData, error: inventoryError } = await query;
+
+      if (inventoryError) throw inventoryError;
 
       // If we got results, map them to our interface
-      if (newInventoryData && newInventoryData.length > 0) {
-        const processedBooks: BookListing[] = newInventoryData.map((item: any) => {
+      if (inventoryData && inventoryData.length > 0) {
+        const processedBooks: BookListing[] = inventoryData.map((item: any) => {
           return {
             ...item,
             title: item.book?.title,
@@ -59,43 +64,8 @@ export const useInventoryBooks = (
         });
         
         setBooks(processedBooks);
-        setLoading(false);
-        return;
-      }
-
-      // If that fails or returns no results, use the old inventory table
-      console.info('Falling back to old inventory table');
-      const { data: oldInventoryData, error: oldError } = await supabase
-        .from('inventory')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .limit(limit || 50);
-      
-      if (oldError) throw oldError;
-      
-      // Map old inventory data to our interface
-      if (oldInventoryData) {
-        const oldProcessedBooks = oldInventoryData.map(item => ({
-          id: item.id,
-          book_id: '', // Old table doesn't have this concept
-          lender_id: item.user_id,
-          condition: item.condition,
-          condition_notes: item.condition_notes,
-          available: true,
-          location: null,
-          lending_duration: item.lending_duration,
-          pickup_preferences: item.pickup_preferences,
-          created_at: item.created_at,
-          updated_at: item.updated_at || item.created_at,
-          title: item.title,
-          author: item.author,
-          isbn: item.isbn,
-          thumbnail_url: item.thumbnail_url,
-          cover_image_url: item.thumbnail_url,
-          status: 'Available'
-        }));
-        
-        setBooks(oldProcessedBooks);
+      } else {
+        setBooks([]);
       }
     } catch (err) {
       console.error('Error fetching inventory books:', err);

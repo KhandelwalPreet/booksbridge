@@ -8,7 +8,9 @@ import {
   UserCircle, 
   LogOut, 
   PlusCircle,
-  BookOpen
+  BookOpen,
+  Moon,
+  Sun
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from '@/integrations/supabase/client';
@@ -20,12 +22,28 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from "@/components/ui/switch";
 
-const Navbar = () => {
+interface NavbarProps {
+  onSearch?: (query: string) => void;
+}
+
+const Navbar = ({ onSearch }: NavbarProps) => {
   const [user, setUser] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [darkMode, setDarkMode] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
+    // Check for dark mode preference in localStorage
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'dark') {
+      setDarkMode(true);
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    
     // Check for an existing session on component mount
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
@@ -40,6 +58,19 @@ const Navbar = () => {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    
+    if (newDarkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   const handleSignOut = async () => {
     try {
@@ -57,27 +88,49 @@ const Navbar = () => {
     }
   };
 
+  const handleSearchInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (onSearch) {
+      onSearch(searchQuery);
+    }
+  };
+
   return (
     <nav className="fixed top-0 left-0 right-0 bg-background/95 backdrop-blur-sm z-50 border-b">
       <div className="container flex items-center justify-between h-16 px-4 md:px-6">
         <div className="flex items-center">
           <Link to="/" className="text-2xl font-bold text-book-maroon flex items-center gap-2">
             <BookOpen className="h-6 w-6 text-book-warm" />
-            <span className="text-book-warm">Book</span>Share
+            <span className="text-book-warm">Books</span>Bridge
           </Link>
         </div>
 
         <div className="hidden md:flex items-center flex-1 max-w-md mx-4">
-          <div className="relative w-full">
+          <form onSubmit={handleSearchSubmit} className="relative w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input 
-              placeholder="Search by title, author, or ISBN..." 
+              placeholder="Search by title..." 
               className="w-full pl-10 border-book-warm/50"
+              value={searchQuery}
+              onChange={handleSearchInput}
             />
-          </div>
+          </form>
         </div>
 
         <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Sun className="h-4 w-4 text-muted-foreground" />
+            <Switch 
+              checked={darkMode} 
+              onCheckedChange={toggleDarkMode}
+            />
+            <Moon className="h-4 w-4 text-muted-foreground" />
+          </div>
+
           {user ? (
             <>
               <Button 
@@ -86,8 +139,8 @@ const Navbar = () => {
                 className="border-book-warm text-book-warm hover:bg-book-warm/10"
                 asChild
               >
-                <Link to="/list-book">
-                  <PlusCircle className="h-4 w-4 mr-1" /> List a Book
+                <Link to="/my-books">
+                  <PlusCircle className="h-4 w-4 mr-1" /> Add a Book
                 </Link>
               </Button>
 
@@ -135,13 +188,15 @@ const Navbar = () => {
       </div>
       
       <div className="md:hidden flex items-center px-4 pb-3">
-        <div className="relative w-full">
+        <form onSubmit={handleSearchSubmit} className="relative w-full">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input 
-            placeholder="Search by title, author, or ISBN..." 
+            placeholder="Search by title..." 
             className="w-full pl-10 border-book-warm/50"
+            value={searchQuery}
+            onChange={handleSearchInput}
           />
-        </div>
+        </form>
       </div>
     </nav>
   );

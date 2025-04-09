@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { Link } from 'react-router-dom';
 
 const HeroSection = () => {
   return (
@@ -19,7 +20,7 @@ const HeroSection = () => {
       <div className="container mx-auto px-4 z-10 text-white">
         <div className="max-w-2xl">
           <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
-            Discover Books Around You – Borrow for Free
+            Books Bridge: Connect Through Reading
           </h1>
           <p className="text-xl md:text-2xl mb-8 opacity-90">
             Find books nearby. Read more. Share more.
@@ -28,8 +29,14 @@ const HeroSection = () => {
             <Button className="bg-book-warm hover:bg-book-warm/90 text-white px-8 py-6 text-lg">
               Browse Books
             </Button>
-            <Button variant="outline" className="border-white text-white hover:bg-white/20 px-8 py-6 text-lg">
-              List Your Books
+            <Button 
+              variant="outline" 
+              className="border-white text-white hover:bg-white/20 px-8 py-6 text-lg"
+              asChild
+            >
+              <Link to="/my-books">
+                List Your Books
+              </Link>
             </Button>
           </div>
         </div>

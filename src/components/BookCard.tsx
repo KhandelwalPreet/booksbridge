@@ -51,12 +51,6 @@ const BookCard = ({
           alt={`${book.title} by ${book.author}`}
           className="w-full h-full object-cover" 
         />
-        
-        {/* Gradient overlay to ensure text readability */}
-        <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-2">
-          <h3 className="text-white text-sm font-semibold line-clamp-1">{book.title}</h3>
-          <p className="text-white/80 text-xs line-clamp-1">{book.author}</p>
-        </div>
       </div>
 
       {showDistance && (
