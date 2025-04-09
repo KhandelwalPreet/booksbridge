@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -94,35 +93,117 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
       }
 
       // Find ISBN-13 or fallback to ISBN-10
-      let finalIsbn = isbn;
+      let isbn10 = null;
+      let isbn13 = null;
+      
       if (bookDetails.industryIdentifiers) {
-        const isbn13 = bookDetails.industryIdentifiers.find(id => id.type === 'ISBN_13');
-        const isbn10 = bookDetails.industryIdentifiers.find(id => id.type === 'ISBN_10');
-        finalIsbn = isbn13?.identifier || isbn10?.identifier || isbn;
+        const isbn13Object = bookDetails.industryIdentifiers.find(id => id.type === 'ISBN_13');
+        const isbn10Object = bookDetails.industryIdentifiers.find(id => id.type === 'ISBN_10');
+        isbn13 = isbn13Object?.identifier || null;
+        isbn10 = isbn10Object?.identifier || null;
       }
       
-      // Create book data
-      const bookData = {
-        title: bookDetails.title,
-        author: bookDetails.authors ? bookDetails.authors.join(', ') : 'Unknown Author',
-        isbn: finalIsbn,
-        publisher: bookDetails.publisher || null,
-        published_date: bookDetails.publishedDate || null,
-        description: bookDetails.description || null,
-        categories: bookDetails.categories ? bookDetails.categories.join(', ') : null,
-        page_count: bookDetails.pageCount || null,
-        condition: condition, // Required field
+      // First check if the book already exists in books_db
+      let bookId;
+      let bookQuery;
+      
+      if (isbn13) {
+        bookQuery = supabase
+          .from('books_db')
+          .select('id')
+          .eq('isbn_13', isbn13);
+      } else if (isbn10) {
+        bookQuery = supabase
+          .from('books_db')
+          .select('id')
+          .eq('isbn_10', isbn10);
+      } else {
+        // If no ISBN available, check by title and author
+        const authorString = bookDetails.authors ? bookDetails.authors.join(', ') : 'Unknown Author';
+        bookQuery = supabase
+          .from('books_db')
+          .select('id')
+          .eq('title', bookDetails.title)
+          .eq('author', authorString);
+      }
+      
+      const { data: existingBookData, error: bookQueryError } = await bookQuery;
+      
+      if (bookQueryError) {
+        throw bookQueryError;
+      }
+      
+      if (existingBookData && existingBookData.length > 0) {
+        // Book already exists, use its ID
+        bookId = existingBookData[0].id;
+      } else {
+        // Book doesn't exist, create it in books_db
+        const bookData = {
+          title: bookDetails.title,
+          author: bookDetails.authors ? bookDetails.authors.join(', ') : 'Unknown Author',
+          isbn_10: isbn10,
+          isbn_13: isbn13,
+          publisher: bookDetails.publisher || null,
+          published_date: bookDetails.publishedDate || null,
+          description: bookDetails.description || null,
+          categories: bookDetails.categories ? bookDetails.categories.join(', ') : null,
+          page_count: bookDetails.pageCount || null,
+          cover_image_url: bookDetails.imageLinks?.thumbnail || null,
+          google_books_id: null // Could extract this if needed
+        };
+        
+        const { data: newBookData, error: insertBookError } = await supabase
+          .from('books_db')
+          .insert(bookData)
+          .select();
+        
+        if (insertBookError) {
+          throw insertBookError;
+        }
+        
+        bookId = newBookData[0].id;
+      }
+      
+      // Now create the inventory listing
+      const inventoryData = {
+        book_id: bookId,
+        lender_id: sessionData.session.user.id,
+        condition: condition,
         condition_notes: notes || null,
-        lending_duration: parseInt(lendingDuration), // Required field
-        thumbnail_url: bookDetails.imageLinks?.thumbnail || null,
-        user_id: sessionData.session.user.id // Required field
+        available: true,
+        lending_duration: parseInt(lendingDuration),
+        pickup_preferences: null
       };
-
-      // Insert into database
-      const { error } = await supabase.from('inventory').insert(bookData);
-
-      if (error) {
-        throw error;
+      
+      const { error: inventoryError } = await supabase
+        .from('inventory_new')
+        .insert(inventoryData);
+      
+      if (inventoryError) {
+        // If using the new table structure fails, fall back to the old one
+        console.warn('Failed to insert into inventory_new, falling back to inventory table');
+        
+        const oldInventoryData = {
+          title: bookDetails.title,
+          author: bookDetails.authors ? bookDetails.authors.join(', ') : 'Unknown Author',
+          isbn: isbn13 || isbn10 || '',
+          publisher: bookDetails.publisher || null,
+          published_date: bookDetails.publishedDate || null,
+          description: bookDetails.description || null,
+          categories: bookDetails.categories ? bookDetails.categories.join(', ') : null,
+          page_count: bookDetails.pageCount || null,
+          condition: condition,
+          condition_notes: notes || null,
+          lending_duration: parseInt(lendingDuration),
+          thumbnail_url: bookDetails.imageLinks?.thumbnail || null,
+          user_id: sessionData.session.user.id
+        };
+        
+        const { error: oldInventoryError } = await supabase.from('inventory').insert(oldInventoryData);
+        
+        if (oldInventoryError) {
+          throw oldInventoryError;
+        }
       }
 
       toast.success("Book listed successfully!");

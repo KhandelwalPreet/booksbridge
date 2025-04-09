@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -8,20 +9,10 @@ import AddBookModal from '@/components/books/AddBookModal';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-
-type BookData = {
-  id: string;
-  title: string;
-  author: string;
-  isbn: string;
-  condition: string;
-  thumbnail_url?: string;
-  status?: string;
-  created_at: string;
-};
+import { BookListing } from '@/types/database';
 
 const MyBooks = () => {
-  const [books, setBooks] = useState<BookData[]>([]);
+  const [books, setBooks] = useState<BookListing[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -47,20 +38,54 @@ const MyBooks = () => {
       
       if (!sessionData.session) return;
       
-      const { data, error } = await supabase
-        .from('inventory')
-        .select('*')
-        .eq('user_id', sessionData.session.user.id)
+      // Check if we have the new inventory_new table data
+      const { data: newInventoryData, error: newInventoryError } = await supabase
+        .from('inventory_new')
+        .select(`
+          *,
+          book:book_id(
+            id, title, author, isbn_10, isbn_13, cover_image_url
+          )
+        `)
+        .eq('lender_id', sessionData.session.user.id)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      
-      const booksWithStatus = data.map((book: any) => ({
-        ...book,
-        status: 'Listed'
-      }));
-      
-      setBooks(booksWithStatus);
+      if (newInventoryError) {
+        console.error('Error fetching from new inventory:', newInventoryError);
+        
+        // Fall back to the old inventory table
+        const { data: oldInventoryData, error: oldInventoryError } = await supabase
+          .from('inventory')
+          .select('*')
+          .eq('user_id', sessionData.session.user.id)
+          .order('created_at', { ascending: false });
+        
+        if (oldInventoryError) throw oldInventoryError;
+        
+        // Map the old data format to the new format for the UI
+        const booksWithStatus = oldInventoryData.map((book: any) => ({
+          ...book,
+          status: 'Listed'
+        }));
+        
+        setBooks(booksWithStatus);
+      } else if (newInventoryData && newInventoryData.length > 0) {
+        // Format data from the new inventory structure
+        const booksWithStatus = newInventoryData.map((item: any) => ({
+          ...item,
+          // Extract book properties to the top level for compatibility with the table
+          title: item.book?.title || 'Unknown Title',
+          author: item.book?.author || 'Unknown Author',
+          isbn: item.book?.isbn_13 || item.book?.isbn_10 || 'N/A',
+          thumbnail_url: item.book?.cover_image_url || null,
+          status: item.available ? 'Listed' : 'Lent'
+        }));
+        
+        setBooks(booksWithStatus);
+      } else {
+        // No books found in either table
+        setBooks([]);
+      }
     } catch (error) {
       console.error('Error fetching books:', error);
       toast("Failed to load your books. Please try again.");
@@ -76,12 +101,21 @@ const MyBooks = () => {
 
   const handleDeleteBook = async (id: string) => {
     try {
-      const { error } = await supabase
-        .from('inventory')
+      // First try to delete from inventory_new
+      const { error: newError } = await supabase
+        .from('inventory_new')
         .delete()
         .eq('id', id);
       
-      if (error) throw error;
+      if (newError) {
+        // Fall back to the old inventory table
+        const { error: oldError } = await supabase
+          .from('inventory')
+          .delete()
+          .eq('id', id);
+        
+        if (oldError) throw oldError;
+      }
       
       toast("Book removed successfully");
       fetchBooks();

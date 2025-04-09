@@ -4,20 +4,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Button } from '@/components/ui/button';
 import { Edit, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-
-type Book = {
-  id: string;
-  title: string;
-  author: string;
-  isbn: string;
-  condition: string;
-  thumbnail_url?: string;
-  status?: string;
-  created_at: string;
-};
+import { BookListing } from '@/types/database';
 
 interface BooksTableProps {
-  books: Book[];
+  books: BookListing[];
   loading: boolean;
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
@@ -74,10 +64,10 @@ const BooksTable = ({ books, loading, onDelete, onEdit }: BooksTableProps) => {
             <TableRow key={book.id}>
               <TableCell>
                 <div className="h-16 w-12 bg-gray-200 rounded overflow-hidden">
-                  {book.thumbnail_url ? (
+                  {book.thumbnail_url || (book.book?.cover_image_url) ? (
                     <img
-                      src={book.thumbnail_url}
-                      alt={`Cover of ${book.title}`}
+                      src={book.thumbnail_url || book.book?.cover_image_url}
+                      alt={`Cover of ${book.title || book.book?.title}`}
                       className="h-full w-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=2730&ixlib=rb-4.0.3';
@@ -90,9 +80,9 @@ const BooksTable = ({ books, loading, onDelete, onEdit }: BooksTableProps) => {
                   )}
                 </div>
               </TableCell>
-              <TableCell className="font-medium">{book.title}</TableCell>
-              <TableCell>{book.author}</TableCell>
-              <TableCell className="font-mono text-xs">{book.isbn}</TableCell>
+              <TableCell className="font-medium">{book.title || book.book?.title}</TableCell>
+              <TableCell>{book.author || book.book?.author}</TableCell>
+              <TableCell className="font-mono text-xs">{book.isbn || book.book?.isbn_13 || book.book?.isbn_10 || 'N/A'}</TableCell>
               <TableCell>{book.condition}</TableCell>
               <TableCell>
                 <Badge variant="outline" className={`${getStatusColor(book.status || 'Listed')}`}>

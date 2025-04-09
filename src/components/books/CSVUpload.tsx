@@ -1,4 +1,3 @@
-
 import React, { useState, useRef } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -7,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Upload, FileText, AlertCircle, Loader2, Check, X } from 'lucide-react';
+import { Upload, FileText, AlertCircle, Loader2, Check } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface CSVUploadProps {
@@ -22,12 +21,16 @@ interface BookData {
     title: string;
     authors: string[];
     isbn: string;
+    isbn10?: string;
+    isbn13?: string;
     imageLinks?: {
       thumbnail?: string;
     };
     publisher?: string;
     publishedDate?: string;
     pageCount?: number;
+    description?: string;
+    categories?: string[];
   };
   condition: string;
   selected: boolean;
@@ -44,7 +47,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Check file type
     if (!file.name.endsWith('.csv')) {
       toast.error("Please upload a CSV file");
       return;
@@ -61,7 +63,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
         return;
       }
       
-      // Parse headers
       const headers = lines[0].split(',').map(header => header.trim().toLowerCase());
       const isbnIndex = headers.indexOf('isbn');
       const titleIndex = headers.indexOf('title');
@@ -71,10 +72,8 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
         return;
       }
       
-      // Parse books
       const parsedBooks: BookData[] = [];
       
-      // Skip headers row
       for (let i = 1; i < lines.length; i++) {
         if (!lines[i].trim()) continue;
         
@@ -101,7 +100,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
       toast.success(`Found ${parsedBooks.length} books in CSV`);
       setBooks(parsedBooks);
       
-      // Start looking up book details
       await fetchBookDetails(parsedBooks);
       
     } catch (error) {
@@ -125,7 +123,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
       for (let i = 0; i < updatedBooks.length; i++) {
         const book = updatedBooks[i];
         
-        // Create search query based on ISBN or title
         const query = book.isbn 
           ? `isbn:${book.isbn}` 
           : `intitle:${book.title}`;
@@ -137,12 +134,16 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
           if (data.items && data.items.length > 0) {
             const bookInfo = data.items[0].volumeInfo;
             
-            // Get ISBN from response if available
+            let isbn10 = '';
+            let isbn13 = '';
             let foundIsbn = book.isbn || '';
+            
             if (bookInfo.industryIdentifiers) {
-              const isbn13 = bookInfo.industryIdentifiers.find((id: any) => id.type === 'ISBN_13');
-              const isbn10 = bookInfo.industryIdentifiers.find((id: any) => id.type === 'ISBN_10');
-              foundIsbn = isbn13?.identifier || isbn10?.identifier || foundIsbn;
+              const isbn13Obj = bookInfo.industryIdentifiers.find((id: any) => id.type === 'ISBN_13');
+              const isbn10Obj = bookInfo.industryIdentifiers.find((id: any) => id.type === 'ISBN_10');
+              isbn13 = isbn13Obj?.identifier || '';
+              isbn10 = isbn10Obj?.identifier || '';
+              foundIsbn = isbn13 || isbn10 || foundIsbn;
             }
             
             updatedBooks[i] = {
@@ -152,17 +153,20 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
                 title: bookInfo.title,
                 authors: bookInfo.authors || ['Unknown Author'],
                 isbn: foundIsbn,
+                isbn10: isbn10 || undefined,
+                isbn13: isbn13 || undefined,
                 imageLinks: bookInfo.imageLinks,
                 publisher: bookInfo.publisher,
                 publishedDate: bookInfo.publishedDate,
-                pageCount: bookInfo.pageCount
+                pageCount: bookInfo.pageCount,
+                description: bookInfo.description,
+                categories: bookInfo.categories
               }
             };
             
             foundCount++;
           }
           
-          // Update state periodically to show progress
           if (i % 3 === 0 || i === updatedBooks.length - 1) {
             setBooks([...updatedBooks]);
           }
@@ -171,7 +175,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
           console.error(`Error fetching details for book ${i}:`, error);
         }
         
-        // Small delay to avoid rate limiting
         await new Promise(resolve => setTimeout(resolve, 300));
       }
       
@@ -206,7 +209,7 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
   };
 
   const handleListBooks = async () => {
-    const selectedBooks = books.filter(book => book.selected && book.found);
+    const selectedBooks = books.filter(book => book.selected && book.found && book.details);
     
     if (selectedBooks.length === 0) {
       toast.error("No books selected to list");
@@ -216,7 +219,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
     try {
       setSubmitting(true);
       
-      // Get current user session
       const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
       if (sessionError || !sessionData.session) {
@@ -224,30 +226,118 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
         return;
       }
 
-      // Create book data for each selected book
-      const booksToInsert = selectedBooks.map(book => ({
-        title: book.details!.title,
-        author: book.details!.authors.join(', '),
-        isbn: book.details!.isbn,
-        publisher: book.details!.publisher || null,
-        published_date: book.details!.publishedDate || null,
-        page_count: book.details!.pageCount || null,
-        condition: book.condition,
-        lending_duration: 14, // Default to 14 days
-        thumbnail_url: book.details!.imageLinks?.thumbnail || null,
-        user_id: sessionData.session.user.id
-      }));
-
-      // Insert into database
-      const { error } = await supabase.from('inventory').insert(booksToInsert);
-
-      if (error) {
-        throw error;
+      let successCount = 0;
+      
+      for (const book of selectedBooks) {
+        if (!book.details) continue;
+        
+        try {
+          let bookId;
+          let bookQuery;
+          
+          if (book.details.isbn13) {
+            bookQuery = supabase
+              .from('books_db')
+              .select('id')
+              .eq('isbn_13', book.details.isbn13);
+          } else if (book.details.isbn10) {
+            bookQuery = supabase
+              .from('books_db')
+              .select('id')
+              .eq('isbn_10', book.details.isbn10);
+          } else {
+            const authorString = book.details.authors.join(', ');
+            bookQuery = supabase
+              .from('books_db')
+              .select('id')
+              .eq('title', book.details.title)
+              .eq('author', authorString);
+          }
+          
+          const { data: existingBookData, error: bookQueryError } = await bookQuery;
+          
+          if (bookQueryError) {
+            throw bookQueryError;
+          }
+          
+          if (existingBookData && existingBookData.length > 0) {
+            bookId = existingBookData[0].id;
+          } else {
+            const bookData = {
+              title: book.details.title,
+              author: book.details.authors.join(', '),
+              isbn_10: book.details.isbn10 || null,
+              isbn_13: book.details.isbn13 || null,
+              publisher: book.details.publisher || null,
+              published_date: book.details.publishedDate || null,
+              description: book.details.description || null,
+              categories: book.details.categories?.join(', ') || null,
+              page_count: book.details.pageCount || null,
+              cover_image_url: book.details.imageLinks?.thumbnail || null
+            };
+            
+            const { data: newBookData, error: insertBookError } = await supabase
+              .from('books_db')
+              .insert(bookData)
+              .select();
+            
+            if (insertBookError) {
+              throw insertBookError;
+            }
+            
+            bookId = newBookData[0].id;
+          }
+          
+          const inventoryData = {
+            book_id: bookId,
+            lender_id: sessionData.session.user.id,
+            condition: book.condition,
+            available: true,
+            lending_duration: 14
+          };
+          
+          const { error: inventoryError } = await supabase
+            .from('inventory_new')
+            .insert(inventoryData);
+          
+          if (inventoryError) {
+            console.warn('Failed to insert into inventory_new, falling back to inventory table');
+            
+            const oldInventoryData = {
+              title: book.details.title,
+              author: book.details.authors.join(', '),
+              isbn: book.details.isbn13 || book.details.isbn10 || book.details.isbn || '',
+              publisher: book.details.publisher || null,
+              published_date: book.details.publishedDate || null,
+              description: book.details.description || null,
+              categories: book.details.categories?.join(', ') || null,
+              page_count: book.details.pageCount || null,
+              condition: book.condition,
+              lending_duration: 14,
+              thumbnail_url: book.details.imageLinks?.thumbnail || null,
+              user_id: sessionData.session.user.id
+            };
+            
+            const { error: oldInventoryError } = await supabase.from('inventory').insert(oldInventoryData);
+            
+            if (oldInventoryError) {
+              throw oldInventoryError;
+            }
+          }
+          
+          successCount++;
+        } catch (error) {
+          console.error('Error adding book:', error);
+        }
       }
 
-      toast.success(`${selectedBooks.length} books listed successfully!`);
-      setBooks([]);
-      onBooksAdded();
+      if (successCount > 0) {
+        toast.success(`${successCount} books listed successfully!`);
+        setBooks([]);
+        onBooksAdded();
+      } else {
+        toast.error("Failed to list any books. Please try again.");
+      }
     } catch (error) {
       console.error('Error adding books:', error);
       toast.error("Failed to list the books");
@@ -258,7 +348,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
 
   return (
     <div>
-      {/* Upload Instructions */}
       <div className="space-y-4 mb-6">
         <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="font-medium mb-2">CSV Upload Instructions</h3>
@@ -270,7 +359,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
           </ul>
         </div>
         
-        {/* File Upload UI */}
         <div className="flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg p-6 bg-gray-50">
           <FileText className="h-10 w-10 text-gray-400 mb-2" />
           <p className="text-sm text-center text-gray-600 mb-4">
@@ -298,7 +386,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
         </div>
       </div>
 
-      {/* Processing Indicator */}
       {processing && (
         <div className="text-center py-4 mb-6">
           <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-book-warm" />
@@ -306,7 +393,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
         </div>
       )}
 
-      {/* Book Results */}
       {books.length > 0 && !processing && (
         <>
           <div className="flex items-center justify-between mb-4">
@@ -328,7 +414,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
                   <Card key={index} className={book.found ? "" : "opacity-60"}>
                     <CardContent className="p-4">
                       <div className="flex">
-                        {/* Book Found Status */}
                         <div className="mr-3 flex-shrink-0">
                           {book.found ? (
                             <Check className="h-6 w-6 text-green-500" />
@@ -337,7 +422,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
                           )}
                         </div>
 
-                        {/* Book Cover (if found) */}
                         {book.found && book.details?.imageLinks?.thumbnail && (
                           <div className="flex-shrink-0 w-16 h-24 bg-gray-100 rounded overflow-hidden mr-4">
                             <img
@@ -348,7 +432,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
                           </div>
                         )}
 
-                        {/* Book Details */}
                         <div className="flex-grow">
                           {book.found && book.details ? (
                             <>
@@ -376,7 +459,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
                             </>
                           )}
 
-                          {/* Condition and Selection (if found) */}
                           {book.found && (
                             <div className="flex items-center justify-between mt-3">
                               <div className="w-36">
@@ -417,7 +499,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
             </ScrollArea>
           </div>
 
-          {/* Summary and Submit */}
           <div className="flex flex-col space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg">
               <div className="flex justify-between items-center">
@@ -443,7 +524,6 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
         </>
       )}
 
-      {/* No Books State */}
       {books.length === 0 && !uploading && !processing && (
         <div className="text-center py-6 text-gray-500">
           Upload a CSV file to get started

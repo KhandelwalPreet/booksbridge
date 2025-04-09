@@ -9,6 +9,57 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      books_db: {
+        Row: {
+          author: string
+          categories: string | null
+          cover_image_url: string | null
+          created_at: string
+          description: string | null
+          google_books_id: string | null
+          id: string
+          isbn_10: string | null
+          isbn_13: string | null
+          language: string | null
+          page_count: number | null
+          published_date: string | null
+          publisher: string | null
+          title: string
+        }
+        Insert: {
+          author: string
+          categories?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          google_books_id?: string | null
+          id?: string
+          isbn_10?: string | null
+          isbn_13?: string | null
+          language?: string | null
+          page_count?: number | null
+          published_date?: string | null
+          publisher?: string | null
+          title: string
+        }
+        Update: {
+          author?: string
+          categories?: string | null
+          cover_image_url?: string | null
+          created_at?: string
+          description?: string | null
+          google_books_id?: string | null
+          id?: string
+          isbn_10?: string | null
+          isbn_13?: string | null
+          language?: string | null
+          page_count?: number | null
+          published_date?: string | null
+          publisher?: string | null
+          title?: string
+        }
+        Relationships: []
+      }
       inventory: {
         Row: {
           author: string | null
@@ -68,6 +119,56 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      inventory_new: {
+        Row: {
+          available: boolean
+          book_id: string
+          condition: string
+          condition_notes: string | null
+          created_at: string
+          id: string
+          lender_id: string
+          lending_duration: number
+          location: string | null
+          pickup_preferences: string | null
+          updated_at: string
+        }
+        Insert: {
+          available?: boolean
+          book_id: string
+          condition: string
+          condition_notes?: string | null
+          created_at?: string
+          id?: string
+          lender_id: string
+          lending_duration: number
+          location?: string | null
+          pickup_preferences?: string | null
+          updated_at?: string
+        }
+        Update: {
+          available?: boolean
+          book_id?: string
+          condition?: string
+          condition_notes?: string | null
+          created_at?: string
+          id?: string
+          lender_id?: string
+          lending_duration?: number
+          location?: string | null
+          pickup_preferences?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_new_book_id_fkey"
+            columns: ["book_id"]
+            isOneToOne: false
+            referencedRelation: "books_db"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       users: {
         Row: {
