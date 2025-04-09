@@ -12,14 +12,31 @@ import {
   getNearbyBooks,
   getPopularAuthorsBooks
 } from '@/data/mockBooks';
+import { BookListing } from '@/types/database';
 
 const Index = () => {
   const [selectedBook, setSelectedBook] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Fetch books from inventory table
-  const { books: recentBooks, loading: loadingRecent } = useInventoryBooks(undefined, 12);
-  const { books: fictionBooks } = useInventoryBooks('Fiction', 12);
+  const { books: recentBooksData, loading: loadingRecent } = useInventoryBooks(undefined, 12);
+  const { books: fictionBooksData } = useInventoryBooks('Fiction', 12);
+
+  // Transform BookListing data to match BookCard expected format
+  const adaptBookListingsForCarousel = (books: BookListing[]) => {
+    return books.map(book => ({
+      id: book.id,
+      title: book.title || 'Untitled',
+      author: book.author || 'Unknown Author',
+      coverImage: book.cover_image_url || book.thumbnail_url || '/placeholder.svg',
+      distance: book.location || '',
+      lender: book.lender_id || '',
+    }));
+  };
+
+  // Adapted books for carousel
+  const recentBooks = adaptBookListingsForCarousel(recentBooksData);
+  const fictionBooks = adaptBookListingsForCarousel(fictionBooksData);
 
   const handleBookClick = (bookId: string) => {
     setSelectedBook(bookId);

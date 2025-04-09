@@ -7,7 +7,9 @@ interface BookCardProps {
     id: string;
     title: string;
     author: string;
-    coverImage: string;
+    coverImage?: string;
+    cover_image_url?: string; // Added to support our database schema
+    thumbnail_url?: string; // Added to support our database schema
     distance?: string;
     lender?: string;
   };
@@ -30,6 +32,9 @@ const BookCard = ({
     lg: "w-44 h-64"
   };
 
+  // Use cover_image_url or thumbnail_url as fallback for coverImage
+  const imageUrl = book.coverImage || book.cover_image_url || book.thumbnail_url || '/placeholder.svg';
+
   return (
     <div 
       className={cn(
@@ -42,7 +47,7 @@ const BookCard = ({
       <div className="relative flex-grow">
         {/* Cover image */}
         <img 
-          src={book.coverImage} 
+          src={imageUrl} 
           alt={`${book.title} by ${book.author}`}
           className="w-full h-full object-cover" 
         />
