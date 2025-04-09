@@ -86,7 +86,7 @@ const AuthPage = () => {
     setLoading(true);
     
     try {
-      // Sign up with Supabase Auth
+      // Sign up with Supabase Auth - the profile will be created automatically by the DB trigger
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -101,24 +101,6 @@ const AuthPage = () => {
       });
       
       if (error) throw error;
-      
-      // Insert into profiles table
-      if (data.user) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: data.user.id,
-            name,
-            gender,
-            latitude: Number(latitude),
-            longitude: Number(longitude),
-          });
-        
-        if (profileError) {
-          console.error('Error creating profile:', profileError);
-          // Continue anyway as the user was created
-        }
-      }
       
       toast.success('Account created successfully! Please log in.');
       setActiveTab('login');

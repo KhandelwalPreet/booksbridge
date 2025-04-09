@@ -85,9 +85,9 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
       setSubmitting(true);
       
       // Get current user session
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      const sessionData = await supabase.auth.getSession();
       
-      if (sessionError || !sessionData.session) {
+      if (!sessionData || !sessionData.data.session) {
         toast.error("You must be logged in to list a book");
         return;
       }
@@ -175,7 +175,7 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
       // Now create the inventory listing with fixed lending duration of 14 days
       const inventoryData = {
         book_id: bookId,
-        lender_id: sessionData.session.user.id,
+        lender_id: sessionData.data.session.user.id,
         condition: condition,
         condition_notes: notes || null,
         available: true,
@@ -188,7 +188,6 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
         .insert(inventoryData);
       
       if (inventoryError) {
-        // If using the new table structure fails, fall back to the old one
         console.warn('Failed to insert into inventory_new, falling back to inventory table');
         
         const oldInventoryData = {
@@ -204,7 +203,7 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
           condition_notes: notes || null,
           lending_duration: 14, // Fixed at 14 days as requested
           thumbnail_url: bookDetails.imageLinks?.thumbnail || null,
-          user_id: sessionData.session.user.id
+          user_id: sessionData.data.session.user.id
         };
         
         const { error: oldInventoryError } = await supabase.from('inventory').insert(oldInventoryData);
@@ -221,9 +220,9 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
       setNotes('');
       setConfirmed(false);
       onBookAdded();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding book:', error);
-      toast.error("Failed to list the book");
+      toast.error(error.message || "Failed to list the book");
     } finally {
       setSubmitting(false);
     }

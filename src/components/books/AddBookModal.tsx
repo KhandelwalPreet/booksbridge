@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import ISBNSearch from './ISBNSearch';
@@ -26,9 +26,12 @@ const AddBookModal = ({ open, onOpenChange, onBookAdded }: AddBookModalProps) =>
       <DialogContent className="sm:max-w-[500px] md:max-w-[600px] lg:max-w-[800px] max-h-[85vh]">
         <DialogHeader>
           <DialogTitle className="text-2xl text-[#2E86AB]">Add a New Book</DialogTitle>
+          <DialogDescription>
+            Add a book to your library by searching ISBN or uploading a CSV file.
+          </DialogDescription>
         </DialogHeader>
         
-        <ScrollArea className="h-[calc(85vh-120px)]">
+        <ScrollArea className="h-[calc(85vh-160px)] pr-4">
           <div className="p-1">
             <Tabs defaultValue="isbn" value={activeTab} onValueChange={setActiveTab} className="mt-4">
               <TabsList className="grid w-full grid-cols-2">

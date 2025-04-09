@@ -1,145 +1,113 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from "@/integrations/supabase/client";
-import { BookDb, InventoryItem } from '@/types/database';
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { BookDb, BookListing } from '../types/database';
 
-type BookData = {
-  id: string;
-  title: string;
-  author: string;
-  coverImage: string;
-  distance?: string;
-  lender?: string;
-};
+interface UseInventoryBooksResult {
+  books: BookListing[];
+  loading: boolean;
+  error: any;
+  refetch: () => Promise<void>;
+}
 
-export const useInventoryBooks = (category?: string, limit: number = 10) => {
-  const [books, setBooks] = useState<BookData[]>([]);
+export const useInventoryBooks = (
+  category?: string,
+  limit?: number
+): UseInventoryBooksResult => {
+  const [books, setBooks] = useState<BookListing[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<any>(null);
+
+  const fetchBooks = async () => {
+    try {
+      setLoading(true);
+      
+      // First attempt to use the new table structure with joined book data
+      let query = supabase
+        .from('inventory_new')
+        .select(`
+          *,
+          book:book_id(*)
+        `)
+        .eq('available', true);
+      
+      // Apply category filter if provided
+      if (category) {
+        query = query.like('book.categories', `%${category}%`);
+      }
+      
+      // Apply limit if provided
+      if (limit) {
+        query = query.limit(limit);
+      }
+      
+      const { data: newInventoryData, error: newError } = await query;
+
+      // If we got results, map them to our interface
+      if (newInventoryData && newInventoryData.length > 0) {
+        const processedBooks: BookListing[] = newInventoryData.map((item: any) => {
+          return {
+            ...item,
+            title: item.book?.title,
+            author: item.book?.author,
+            cover_image_url: item.book?.cover_image_url,
+            thumbnail_url: item.book?.cover_image_url,
+            isbn: item.book?.isbn_13 || item.book?.isbn_10,
+            isbn_13: item.book?.isbn_13,
+            isbn_10: item.book?.isbn_10
+          };
+        });
+        
+        setBooks(processedBooks);
+        setLoading(false);
+        return;
+      }
+
+      // If that fails or returns no results, use the old inventory table
+      console.info('Falling back to old inventory table');
+      const { data: oldInventoryData, error: oldError } = await supabase
+        .from('inventory')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(limit || 50);
+      
+      if (oldError) throw oldError;
+      
+      // Map old inventory data to our interface
+      if (oldInventoryData) {
+        const oldProcessedBooks = oldInventoryData.map(item => ({
+          id: item.id,
+          book_id: '', // Old table doesn't have this concept
+          lender_id: item.user_id,
+          condition: item.condition,
+          condition_notes: item.condition_notes,
+          available: true,
+          location: null,
+          lending_duration: item.lending_duration,
+          pickup_preferences: item.pickup_preferences,
+          created_at: item.created_at,
+          updated_at: item.updated_at || item.created_at,
+          title: item.title,
+          author: item.author,
+          isbn: item.isbn,
+          thumbnail_url: item.thumbnail_url,
+          cover_image_url: item.thumbnail_url,
+          status: 'Available'
+        }));
+        
+        setBooks(oldProcessedBooks);
+      }
+    } catch (err) {
+      console.error('Error fetching inventory books:', err);
+      setError(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchBooks = async () => {
-      setLoading(true);
-      try {
-        // First fetch from books_db directly
-        let query = supabase
-          .from('books_db')
-          .select('*');
-        
-        // Add category filter if provided
-        if (category) {
-          query = query.ilike('categories', `%${category}%`);
-        }
-        
-        // Add limit
-        query = query.limit(limit);
-        
-        const { data, error } = await query;
-        
-        if (error) {
-          console.error('Error fetching from books_db:', error);
-          
-          // Fall back to the old method if books_db fetch fails
-          fallbackToInventory();
-          return;
-        }
-        
-        if (data && data.length > 0) {
-          // Transform data to match BookCard props
-          const transformedData = data.map((book: BookDb) => ({
-            id: book.id,
-            title: book.title || 'Unknown Title',
-            author: book.author || 'Unknown Author',
-            coverImage: book.cover_image_url || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=2730&ixlib=rb-4.0.3',
-          }));
-          
-          setBooks(transformedData);
-        } else {
-          // If no data found in books_db, try the fallback
-          fallbackToInventory();
-        }
-      } catch (err) {
-        console.error('Error in useInventoryBooks:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
-        setLoading(false);
-      }
-    };
-
-    const fallbackToInventory = async () => {
-      try {
-        // First try the new inventory structure
-        const { data: inventoryNewData, error: inventoryNewError } = await supabase
-          .from('inventory_new')
-          .select(`
-            id,
-            book_id,
-            book:books_db!book_id(
-              id, title, author, cover_image_url, categories
-            )
-          `)
-          .eq('available', true)
-          .limit(limit);
-        
-        if (inventoryNewError || !inventoryNewData || inventoryNewData.length === 0) {
-          console.log('Falling back to old inventory table');
-          
-          let query = supabase
-            .from('inventory')
-            .select('id, title, author, thumbnail_url, condition')
-            .limit(limit);
-          
-          // Add category filter if provided
-          if (category) {
-            query = query.ilike('categories', `%${category}%`);
-          }
-          
-          const { data, error } = await query;
-          
-          if (error) {
-            throw error;
-          }
-          
-          // Transform the data to match BookCard props
-          const transformedData = data.map(book => ({
-            id: book.id,
-            title: book.title || 'Unknown Title',
-            author: book.author || 'Unknown Author',
-            coverImage: book.thumbnail_url || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=2730&ixlib=rb-4.0.3',
-          }));
-          
-          setBooks(transformedData);
-        } else {
-          // We have data from the new structure, transform it
-          const transformedData = inventoryNewData.map(item => {
-            return {
-              id: item.id,
-              title: item.book?.title || 'Unknown Title',
-              author: item.book?.author || 'Unknown Author',
-              coverImage: item.book?.cover_image_url || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&q=80&w=2730&ixlib=rb-4.0.3',
-            };
-          });
-          
-          // If category is specified, filter by category
-          const filteredData = category 
-            ? transformedData.filter(book => {
-                const bookItem = inventoryNewData.find(item => item.id === book.id);
-                return bookItem?.book?.categories && 
-                       bookItem.book.categories.toLowerCase().includes(category.toLowerCase());
-              })
-            : transformedData;
-          
-          setBooks(filteredData);
-        }
-      } catch (err) {
-        console.error('Error in fallback fetch:', err);
-        setError(err instanceof Error ? err.message : 'Unknown error');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchBooks();
   }, [category, limit]);
 
-  return { books, loading, error };
+  return { books, loading, error, refetch: fetchBooks };
 };
