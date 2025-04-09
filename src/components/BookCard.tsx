@@ -26,10 +26,11 @@ const BookCard = ({
   size = 'md',
   showDistance = false
 }: BookCardProps) => {
+  // More Netflix-like square sizing
   const sizeClasses = {
-    sm: "w-28 h-40",
-    md: "w-36 h-52",
-    lg: "w-44 h-64"
+    sm: "w-24 h-32",
+    md: "w-32 h-44",
+    lg: "w-40 h-56"
   };
 
   // Use cover_image_url or thumbnail_url as fallback for coverImage

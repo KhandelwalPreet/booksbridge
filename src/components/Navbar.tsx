@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { 
@@ -23,15 +23,29 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useToast } from '@/hooks/use-toast';
 import { Switch } from "@/components/ui/switch";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Card } from "@/components/ui/card";
+import BookCard from './BookCard';
 
 interface NavbarProps {
   onSearch?: (query: string) => void;
+}
+
+interface SearchResult {
+  id: string;
+  title: string;
+  author: string;
+  cover_image_url?: string;
 }
 
 const Navbar = ({ onSearch }: NavbarProps) => {
   const [user, setUser] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [darkMode, setDarkMode] = useState(false);
+  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -56,8 +70,55 @@ const Navbar = ({ onSearch }: NavbarProps) => {
       }
     );
 
-    return () => subscription.unsubscribe();
+    // Add click event listener to close search results when clicking outside
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      subscription.unsubscribe();
+      document.removeEventListener('mousedown', handleClickOutside);
+    }
   }, []);
+
+  useEffect(() => {
+    const delaySearch = setTimeout(() => {
+      if (searchQuery.trim().length >= 2) {
+        performSearch(searchQuery);
+      } else {
+        setSearchResults([]);
+        setShowResults(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(delaySearch);
+  }, [searchQuery]);
+
+  const performSearch = async (query: string) => {
+    if (!query.trim()) return;
+    
+    setIsSearching(true);
+    try {
+      const { data, error } = await supabase
+        .from('books_db')
+        .select('id, title, author, cover_image_url')
+        .ilike('title', `%${query}%`)
+        .limit(5);
+        
+      if (error) throw error;
+      
+      setSearchResults(data || []);
+      setShowResults(true);
+    } catch (error) {
+      console.error('Error searching for books:', error);
+    } finally {
+      setIsSearching(false);
+    }
+  };
 
   const toggleDarkMode = () => {
     const newDarkMode = !darkMode;
@@ -94,8 +155,21 @@ const Navbar = ({ onSearch }: NavbarProps) => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (onSearch) {
+    if (onSearch && searchQuery.trim()) {
       onSearch(searchQuery);
+      setShowResults(false);
+    }
+  };
+
+  const handleResultClick = (id: string) => {
+    if (onSearch) {
+      // Pass the exact title to ensure the modal opens
+      const book = searchResults.find(book => book.id === id);
+      if (book) {
+        onSearch(book.title);
+        setShowResults(false);
+        setSearchQuery('');
+      }
     }
   };
 
@@ -110,15 +184,62 @@ const Navbar = ({ onSearch }: NavbarProps) => {
         </div>
 
         <div className="hidden md:flex items-center flex-1 max-w-md mx-4">
-          <form onSubmit={handleSearchSubmit} className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input 
-              placeholder="Search by title..." 
-              className="w-full pl-10 border-book-warm/50"
-              value={searchQuery}
-              onChange={handleSearchInput}
-            />
-          </form>
+          <div ref={searchRef} className="relative w-full">
+            <form onSubmit={handleSearchSubmit} className="relative w-full">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input 
+                placeholder="Search by title..." 
+                className="w-full pl-10 border-book-warm/50"
+                value={searchQuery}
+                onChange={handleSearchInput}
+              />
+            </form>
+            
+            {/* Search results dropdown */}
+            {showResults && searchResults.length > 0 && (
+              <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg overflow-hidden">
+                <div className="p-2">
+                  <div className="text-sm font-medium text-muted-foreground mb-2">
+                    {isSearching ? 'Searching...' : 'Search Results'}
+                  </div>
+                  <div className="space-y-2 max-h-[300px] overflow-auto">
+                    {searchResults.map((result) => (
+                      <div 
+                        key={result.id} 
+                        className="flex items-center gap-3 p-2 hover:bg-secondary rounded-md cursor-pointer"
+                        onClick={() => handleResultClick(result.id)}
+                      >
+                        <div className="h-12 w-8 flex-shrink-0">
+                          <img 
+                            src={result.cover_image_url || '/placeholder.svg'} 
+                            alt={result.title}
+                            className="h-full w-full object-cover rounded"
+                          />
+                        </div>
+                        <div className="overflow-hidden">
+                          <p className="font-medium text-sm truncate">{result.title}</p>
+                          <p className="text-xs text-muted-foreground truncate">{result.author}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {searchQuery.trim().length >= 2 && (
+                    <Button 
+                      variant="ghost" 
+                      className="w-full mt-2 text-book-warm" 
+                      size="sm"
+                      onClick={() => { 
+                        if (onSearch) onSearch(searchQuery); 
+                        setShowResults(false);
+                      }}
+                    >
+                      View all results
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
@@ -188,15 +309,63 @@ const Navbar = ({ onSearch }: NavbarProps) => {
       </div>
       
       <div className="md:hidden flex items-center px-4 pb-3">
-        <form onSubmit={handleSearchSubmit} className="relative w-full">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input 
-            placeholder="Search by title..." 
-            className="w-full pl-10 border-book-warm/50"
-            value={searchQuery}
-            onChange={handleSearchInput}
-          />
-        </form>
+        <div ref={searchRef} className="relative w-full">
+          <form onSubmit={handleSearchSubmit} className="relative w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input 
+              placeholder="Search by title..." 
+              className="w-full pl-10 border-book-warm/50"
+              value={searchQuery}
+              onChange={handleSearchInput}
+            />
+          </form>
+          
+          {/* Mobile search results dropdown */}
+          {showResults && searchResults.length > 0 && (
+            <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg overflow-hidden">
+              {/* ... Same content as desktop dropdown ... */}
+              <div className="p-2">
+                <div className="text-sm font-medium text-muted-foreground mb-2">
+                  {isSearching ? 'Searching...' : 'Search Results'}
+                </div>
+                <div className="space-y-2 max-h-[300px] overflow-auto">
+                  {searchResults.map((result) => (
+                    <div 
+                      key={result.id} 
+                      className="flex items-center gap-3 p-2 hover:bg-secondary rounded-md cursor-pointer"
+                      onClick={() => handleResultClick(result.id)}
+                    >
+                      <div className="h-12 w-8 flex-shrink-0">
+                        <img 
+                          src={result.cover_image_url || '/placeholder.svg'} 
+                          alt={result.title}
+                          className="h-full w-full object-cover rounded"
+                        />
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="font-medium text-sm truncate">{result.title}</p>
+                        <p className="text-xs text-muted-foreground truncate">{result.author}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {searchQuery.trim().length >= 2 && (
+                  <Button 
+                    variant="ghost" 
+                    className="w-full mt-2 text-book-warm" 
+                    size="sm"
+                    onClick={() => { 
+                      if (onSearch) onSearch(searchQuery); 
+                      setShowResults(false);
+                    }}
+                  >
+                    View all results
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </nav>
   );

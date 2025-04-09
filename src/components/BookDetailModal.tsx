@@ -1,15 +1,17 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { MapPin, X } from 'lucide-react';
 import BookCard from './BookCard';
+import { supabase } from '@/integrations/supabase/client';
 
 interface BookListing {
   id: string;
   lenderName: string;
   distance: string;
   distanceValue: number; // For sorting
+  lenderId?: string; // Added to fetch supplier details
 }
 
 interface BookDetailModalProps {
@@ -28,10 +30,49 @@ interface BookDetailModalProps {
   } | null;
 }
 
+interface SupplierDetails {
+  name: string;
+  gender: string;
+  location?: string;
+}
+
 const BookDetailModal = ({ isOpen, onClose, book }: BookDetailModalProps) => {
   const [selectedListing, setSelectedListing] = useState<string | null>(
     book?.listings?.length ? book.listings[0].id : null
   );
+  const [supplierDetails, setSupplierDetails] = useState<SupplierDetails | null>(null);
+
+  useEffect(() => {
+    if (isOpen && book?.listings?.length && selectedListing) {
+      const currentListing = book.listings.find(listing => listing.id === selectedListing);
+      if (currentListing?.lenderId) {
+        fetchSupplierDetails(currentListing.lenderId);
+      }
+    }
+  }, [isOpen, selectedListing, book]);
+
+  const fetchSupplierDetails = async (lenderId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('name, gender, latitude, longitude')
+        .eq('id', lenderId)
+        .single();
+
+      if (error) throw error;
+      
+      if (data) {
+        setSupplierDetails({
+          name: data.name || 'Unknown',
+          gender: data.gender || 'Not specified',
+          location: data.latitude && data.longitude ? `${data.latitude.toFixed(4)}, ${data.longitude.toFixed(4)}` : undefined
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching supplier details:', error);
+      setSupplierDetails(null);
+    }
+  };
 
   if (!book) return null;
 
@@ -90,6 +131,11 @@ const BookDetailModal = ({ isOpen, onClose, book }: BookDetailModalProps) => {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-medium">{currentListing?.lenderName}</p>
+                  {supplierDetails && (
+                    <div className="text-sm text-muted-foreground mb-1">
+                      <span className="mr-2">Gender: {supplierDetails.gender}</span>
+                    </div>
+                  )}
                   <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-3 w-3 mr-1" />
                     <span>{currentListing?.distance}</span>

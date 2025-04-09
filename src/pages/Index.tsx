@@ -134,7 +134,7 @@ const Index = () => {
         // Get lender profile info
         const { data: lenderData } = await supabase
           .from('profiles')
-          .select('name, latitude, longitude')
+          .select('name, gender, latitude, longitude')
           .eq('id', data.lender_id)
           .single();
         
@@ -164,6 +164,7 @@ const Index = () => {
           description: data.book?.description || 'No description available',
           listings: [{
             id: data.id,
+            lenderId: data.lender_id, // Added lenderId for supplier details
             lenderName: lenderData?.name || 'Unknown',
             distance: distance ? `${distance.toFixed(1)} km away` : 'Distance unknown',
             distanceValue: distance || 9999
