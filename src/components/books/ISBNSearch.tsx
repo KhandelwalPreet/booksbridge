@@ -105,13 +105,15 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
       
       // First check if the book already exists in books_db
       let bookId;
-      let { data: existingBookData, error: bookQueryError } = null;
+      let existingBookData = null;
+      let bookQueryError = null;
       
       if (isbn13) {
         const query = await supabase
           .from('books_db')
           .select('id')
           .eq('isbn_13', isbn13);
+          
         existingBookData = query.data;
         bookQueryError = query.error;
       } else if (isbn10) {
@@ -119,6 +121,7 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
           .from('books_db')
           .select('id')
           .eq('isbn_10', isbn10);
+          
         existingBookData = query.data;
         bookQueryError = query.error;
       } else {
@@ -129,6 +132,7 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
           .select('id')
           .eq('title', bookDetails.title)
           .eq('author', authorString);
+          
         existingBookData = query.data;
         bookQueryError = query.error;
       }
@@ -161,8 +165,8 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
           .insert(bookData)
           .select();
         
-        if (insertBookError) {
-          throw insertBookError;
+        if (insertBookError || !newBookData) {
+          throw insertBookError || new Error("Failed to insert book data");
         }
         
         bookId = newBookData[0].id;
