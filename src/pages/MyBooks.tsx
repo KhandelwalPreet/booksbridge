@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,23 +51,8 @@ const MyBooks = () => {
       
       if (newInventoryError) {
         console.error('Error fetching from new inventory:', newInventoryError);
-        
-        // Fall back to the old inventory table
-        const { data: oldInventoryData, error: oldInventoryError } = await supabase
-          .from('inventory')
-          .select('*')
-          .eq('user_id', sessionData.session.user.id)
-          .order('created_at', { ascending: false });
-        
-        if (oldInventoryError) throw oldInventoryError;
-        
-        // Map the old data format to the new format for the UI
-        const booksWithStatus = oldInventoryData.map((book: any) => ({
-          ...book,
-          status: 'Listed'
-        }));
-        
-        setBooks(booksWithStatus);
+        setBooks([]);
+        toast.error("Failed to load your books. Please try again.");
       } else if (newInventoryData && newInventoryData.length > 0) {
         // Format data from the new inventory structure
         const booksWithStatus = newInventoryData.map((item: any) => ({
@@ -83,12 +67,12 @@ const MyBooks = () => {
         
         setBooks(booksWithStatus);
       } else {
-        // No books found in either table
+        // No books found
         setBooks([]);
       }
     } catch (error) {
       console.error('Error fetching books:', error);
-      toast("Failed to load your books. Please try again.");
+      toast.error("Failed to load your books. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -101,27 +85,20 @@ const MyBooks = () => {
 
   const handleDeleteBook = async (id: string) => {
     try {
-      // First try to delete from inventory_new
-      const { error: newError } = await supabase
+      const { error } = await supabase
         .from('inventory_new')
         .delete()
         .eq('id', id);
       
-      if (newError) {
-        // Fall back to the old inventory table
-        const { error: oldError } = await supabase
-          .from('inventory')
-          .delete()
-          .eq('id', id);
-        
-        if (oldError) throw oldError;
+      if (error) {
+        throw error;
       }
       
-      toast("Book removed successfully");
+      toast.success("Book removed successfully");
       fetchBooks();
     } catch (error) {
       console.error('Error deleting book:', error);
-      toast("Failed to delete book. Please try again.");
+      toast.error("Failed to delete book. Please try again.");
     }
   };
 

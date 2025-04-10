@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -188,29 +187,8 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
         .insert(inventoryData);
       
       if (inventoryError) {
-        console.warn('Failed to insert into inventory_new, falling back to inventory table');
-        
-        const oldInventoryData = {
-          title: bookDetails.title,
-          author: bookDetails.authors ? bookDetails.authors.join(', ') : 'Unknown Author',
-          isbn: isbn13 || isbn10 || '',
-          publisher: bookDetails.publisher || null,
-          published_date: bookDetails.publishedDate || null,
-          description: bookDetails.description || null,
-          categories: bookDetails.categories ? bookDetails.categories.join(', ') : null,
-          page_count: bookDetails.pageCount || null,
-          condition: condition,
-          condition_notes: notes || null,
-          lending_duration: 14, // Fixed at 14 days as requested
-          thumbnail_url: bookDetails.imageLinks?.thumbnail || null,
-          user_id: sessionData.data.session.user.id
-        };
-        
-        const { error: oldInventoryError } = await supabase.from('inventory').insert(oldInventoryData);
-        
-        if (oldInventoryError) {
-          throw oldInventoryError;
-        }
+        console.warn('Failed to insert into inventory_new');
+        throw inventoryError;
       }
 
       toast.success("Book listed successfully!");

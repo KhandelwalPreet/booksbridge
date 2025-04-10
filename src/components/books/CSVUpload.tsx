@@ -306,28 +306,8 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
             .insert(inventoryData);
           
           if (inventoryError) {
-            console.warn('Failed to insert into inventory_new, falling back to inventory table');
-            
-            const oldInventoryData = {
-              title: book.details.title,
-              author: book.details.authors.join(', '),
-              isbn: book.details.isbn13 || book.details.isbn10 || book.details.isbn || '',
-              publisher: book.details.publisher || null,
-              published_date: book.details.publishedDate || null,
-              description: book.details.description || null,
-              categories: book.details.categories?.join(', ') || null,
-              page_count: book.details.pageCount || null,
-              condition: book.condition,
-              lending_duration: 14,
-              thumbnail_url: book.details.imageLinks?.thumbnail || null,
-              user_id: sessionData.session.user.id
-            };
-            
-            const { error: oldInventoryError } = await supabase.from('inventory').insert(oldInventoryData);
-            
-            if (oldInventoryError) {
-              throw oldInventoryError;
-            }
+            console.warn('Failed to insert into inventory_new');
+            throw inventoryError;
           }
           
           successCount++;

@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -65,37 +66,54 @@ const ListBook = () => {
 
   const onSubmit = async (data: FormValues) => {
     try {
-      // First check if we're authenticated (this is a placeholder, you'd need to implement auth)
+      // First check if we're authenticated
       const { data: authData, error: authError } = await supabase.auth.getSession();
       
       if (authError || !authData.session) {
         toast.error("You must be logged in to list a book.");
-        // Here you could redirect to login page
         return;
       }
 
-      // Ensure all required fields are present and properly formatted
+      // First create the book entry in books_db
       const bookData = {
         title: data.title,
         author: data.author,
-        isbn: data.isbn,
+        isbn_10: data.isbn.length === 10 ? data.isbn : null,
+        isbn_13: data.isbn.length === 13 ? data.isbn : null,
         publisher: data.publisher || null,
         published_date: data.published_date || null,
         description: data.description || null,
         categories: data.categories || null,
         page_count: data.page_count || null,
-        condition: data.condition, // This is required
-        condition_notes: data.condition_notes || null,
-        lending_duration: data.lending_duration,
-        pickup_preferences: data.pickup_preferences || null,
-        thumbnail_url: data.thumbnail_url || null,
-        user_id: authData.session.user.id // Set the user_id from the authenticated user
+        cover_image_url: data.thumbnail_url || null,
       };
 
-      const { error } = await supabase.from('inventory').insert(bookData);
+      const { data: newBookData, error: bookError } = await supabase
+        .from('books_db')
+        .insert(bookData)
+        .select();
 
-      if (error) {
-        throw error;
+      if (bookError || !newBookData) {
+        throw bookError || new Error('Failed to create book entry');
+      }
+
+      // Now create the inventory entry
+      const inventoryData = {
+        book_id: newBookData[0].id,
+        lender_id: authData.session.user.id,
+        condition: data.condition,
+        condition_notes: data.condition_notes || null,
+        available: true,
+        lending_duration: data.lending_duration,
+        pickup_preferences: data.pickup_preferences || null
+      };
+
+      const { error: inventoryError } = await supabase
+        .from('inventory_new')
+        .insert(inventoryData);
+
+      if (inventoryError) {
+        throw inventoryError;
       }
 
       toast.success("Book listed successfully!");
