@@ -99,11 +99,15 @@
 }
 
 .book-card {
-  @apply rounded-2xl shadow-md transition-all duration-300;
+  @apply rounded-md shadow-md transition-all duration-300;
 }
 
 .book-card:hover {
   @apply transform scale-105 shadow-lg z-10;
+}
+
+.book-card:hover img {
+  @apply scale-110 transition-transform duration-300;
 }
 
 .hero-gradient {

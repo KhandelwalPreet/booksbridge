@@ -34,6 +34,8 @@ interface SupplierDetails {
   name: string;
   gender: string;
   location?: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 const BookDetailModal = ({ isOpen, onClose, book }: BookDetailModalProps) => {
@@ -41,6 +43,34 @@ const BookDetailModal = ({ isOpen, onClose, book }: BookDetailModalProps) => {
     book?.listings?.length ? book.listings[0].id : null
   );
   const [supplierDetails, setSupplierDetails] = useState<SupplierDetails | null>(null);
+  const [userLocation, setUserLocation] = useState<{latitude: number, longitude: number} | null>(null);
+
+  useEffect(() => {
+    // Get current user's location
+    const fetchUserLocation = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('latitude, longitude')
+            .eq('id', session.user.id)
+            .single();
+          
+          if (data && !error) {
+            setUserLocation({
+              latitude: data.latitude,
+              longitude: data.longitude
+            });
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching user location:', error);
+      }
+    };
+    
+    fetchUserLocation();
+  }, []);
 
   useEffect(() => {
     if (isOpen && book?.listings?.length && selectedListing) {
@@ -62,16 +92,34 @@ const BookDetailModal = ({ isOpen, onClose, book }: BookDetailModalProps) => {
       if (error) throw error;
       
       if (data) {
+        const distance = calculateDistance(data.latitude, data.longitude);
         setSupplierDetails({
           name: data.name || 'Unknown',
           gender: data.gender || 'Not specified',
-          location: data.latitude && data.longitude ? `${data.latitude.toFixed(4)}, ${data.longitude.toFixed(4)}` : undefined
+          location: distance ? `${distance.toFixed(1)} km away` : undefined,
+          latitude: data.latitude,
+          longitude: data.longitude
         });
       }
     } catch (error) {
       console.error('Error fetching supplier details:', error);
       setSupplierDetails(null);
     }
+  };
+
+  const calculateDistance = (supplierLat: number, supplierLon: number): number | null => {
+    if (!userLocation) return null;
+    
+    // Haversine formula for distance calculation
+    const R = 6371; // Radius of the Earth in km
+    const dLat = (supplierLat - userLocation.latitude) * Math.PI / 180;
+    const dLon = (supplierLon - userLocation.longitude) * Math.PI / 180;
+    const a = 
+      Math.sin(dLat/2) * Math.sin(dLat/2) +
+      Math.cos(userLocation.latitude * Math.PI / 180) * Math.cos(supplierLat * Math.PI / 180) * 
+      Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return R * c;
   };
 
   if (!book) return null;
@@ -138,7 +186,9 @@ const BookDetailModal = ({ isOpen, onClose, book }: BookDetailModalProps) => {
                   )}
                   <div className="flex items-center text-sm text-muted-foreground">
                     <MapPin className="h-3 w-3 mr-1" />
-                    <span>{currentListing?.distance}</span>
+                    <span>
+                      {supplierDetails?.location || currentListing?.distance || 'Distance unknown'}
+                    </span>
                   </div>
                 </div>
                 <Button className="bg-book-warm hover:bg-book-warm/90">

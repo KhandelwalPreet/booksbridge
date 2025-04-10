@@ -20,14 +20,15 @@ interface BookCarouselProps {
     coverImage: string;
     distance?: string;
     lender?: string;
+    categories?: string;
   }>;
   onBookClick: (bookId: string) => void;
 }
 
 const BookCarousel = ({ title, books = [], onBookClick }: BookCarouselProps) => {
   return (
-    <div className="my-6">
-      <h2 className="text-xl font-semibold text-book-maroon mb-3">{title}</h2>
+    <div className="my-3"> {/* Reduced vertical spacing */}
+      <h2 className="text-xl font-semibold text-book-maroon mb-2">{title}</h2>
       
       {books && books.length > 0 ? (
         <Carousel
@@ -37,9 +38,9 @@ const BookCarousel = ({ title, books = [], onBookClick }: BookCarouselProps) => 
           }}
           className="w-full"
         >
-          <CarouselContent className="-ml-2">
+          <CarouselContent className="-ml-1"> {/* Reduced left margin for tighter spacing */}
             {books.map((book) => (
-              <CarouselItem key={book.id} className="basis-auto pl-2 md:basis-1/4 lg:basis-1/5 xl:basis-1/6">
+              <CarouselItem key={book.id} className="basis-auto pl-1 md:basis-1/5 lg:basis-1/6 xl:basis-1/7">
                 <BookCard 
                   book={book}
                   onClick={() => onBookClick(book.id)}
@@ -52,7 +53,7 @@ const BookCarousel = ({ title, books = [], onBookClick }: BookCarouselProps) => 
           <CarouselNext className="-right-4 h-8 w-8 rounded-full opacity-70 hover:opacity-100" />
         </Carousel>
       ) : (
-        <div className="flex items-center justify-center w-full py-8 text-gray-500">
+        <div className="flex items-center justify-center w-full py-6 text-gray-500">
           No books available in this category
         </div>
       )}

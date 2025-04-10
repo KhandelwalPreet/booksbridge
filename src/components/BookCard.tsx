@@ -12,6 +12,7 @@ interface BookCardProps {
     thumbnail_url?: string; // Added to support our database schema
     distance?: string;
     lender?: string;
+    categories?: string;
   };
   onClick?: () => void;
   className?: string;
@@ -29,8 +30,8 @@ const BookCard = ({
   // More Netflix-like square sizing
   const sizeClasses = {
     sm: "w-24 h-32",
-    md: "w-32 h-44",
-    lg: "w-40 h-56"
+    md: "w-32 h-32", // Changed to square
+    lg: "w-40 h-40"  // Changed to square
   };
 
   // Use cover_image_url or thumbnail_url as fallback for coverImage

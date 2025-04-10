@@ -30,6 +30,7 @@ const Index = () => {
   const [allBooks, setAllBooks] = useState<BookListing[]>([]);
   const [nearbyBooks, setNearbyBooks] = useState<BookListing[]>([]);
   const [userLocation, setUserLocation] = useState<{latitude: number, longitude: number} | null>(null);
+  const [visibleSearchResults, setVisibleSearchResults] = useState(false);
 
   // Fetch books from inventory table
   const { books: recentBooksData, loading: loadingRecent, refetch } = useInventoryBooks(undefined, 12);
@@ -41,7 +42,7 @@ const Index = () => {
         .from('inventory_new')
         .select(`
           *,
-          book:book_id(*)
+          book:books_db(*)
         `)
         .eq('available', true);
       
@@ -54,7 +55,8 @@ const Index = () => {
           thumbnail_url: item.book?.cover_image_url,
           isbn: item.book?.isbn_13 || item.book?.isbn_10,
           isbn_13: item.book?.isbn_13,
-          isbn_10: item.book?.isbn_10
+          isbn_10: item.book?.isbn_10,
+          categories: item.book?.categories
         }));
         setAllBooks(processedBooks);
       }
@@ -115,6 +117,7 @@ const Index = () => {
       coverImage: book.cover_image_url || book.thumbnail_url || '/placeholder.svg',
       distance: book.location || '',
       lender: book.lender_id || '',
+      categories: book.book?.categories || ''
     }));
   };
 
@@ -125,7 +128,7 @@ const Index = () => {
         .from('inventory_new')
         .select(`
           *,
-          book:book_id(*)
+          book:books_db(*)
         `)
         .eq('id', bookId)
         .single();
@@ -164,7 +167,7 @@ const Index = () => {
           description: data.book?.description || 'No description available',
           listings: [{
             id: data.id,
-            lenderId: data.lender_id, // Added lenderId for supplier details
+            lenderId: data.lender_id,
             lenderName: lenderData?.name || 'Unknown',
             distance: distance ? `${distance.toFixed(1)} km away` : 'Distance unknown',
             distanceValue: distance || 9999
@@ -188,18 +191,27 @@ const Index = () => {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
+    setVisibleSearchResults(true);
   };
 
+  // Group books by genre for the genre carousels
+  const booksByGenre = GENRES.reduce((acc: Record<string, BookListing[]>, genre) => {
+    acc[genre] = allBooks.filter((book) => 
+      book.book?.categories?.toLowerCase().includes(genre.toLowerCase())
+    ).slice(0, 12);
+    return acc;
+  }, {});
+
   return (
-    <div className="min-h-screen flex flex-col bg-[#F4F6F8]">
-      <Navbar onSearch={handleSearch} />
+    <div className="min-h-screen flex flex-col bg-[#F4F6F8] dark:bg-background">
+      <Navbar onSearch={handleSearch} onBookClick={handleBookClick} />
       
       <main className="flex-grow pt-16">
         <HeroSection />
         
         <div className="container mx-auto px-4 py-8">
           {/* Show search results if search is active */}
-          {searchQuery && (
+          {searchQuery && visibleSearchResults && (
             <BookCarousel 
               title={`Search results for: ${searchQuery}`}
               books={adaptBookListingsForCarousel(filteredBooks)}
@@ -222,17 +234,14 @@ const Index = () => {
           />
           
           {/* Genre-based carousels */}
-          {GENRES.map(genre => {
-            const { books: genreBooks } = useInventoryBooks(genre, 12);
-            return (
-              <BookCarousel
-                key={genre}
-                title={genre}
-                books={adaptBookListingsForCarousel(genreBooks)}
-                onBookClick={handleBookClick}
-              />
-            );
-          })}
+          {GENRES.map(genre => (
+            <BookCarousel
+              key={genre}
+              title={genre}
+              books={adaptBookListingsForCarousel(booksByGenre[genre] || [])}
+              onBookClick={handleBookClick}
+            />
+          ))}
         </div>
         
         {/* Book Detail Modal */}

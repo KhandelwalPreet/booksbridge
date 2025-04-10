@@ -29,6 +29,7 @@ import BookCard from './BookCard';
 
 interface NavbarProps {
   onSearch?: (query: string) => void;
+  onBookClick?: (id: string) => void;
 }
 
 interface SearchResult {
@@ -38,7 +39,7 @@ interface SearchResult {
   cover_image_url?: string;
 }
 
-const Navbar = ({ onSearch }: NavbarProps) => {
+const Navbar = ({ onSearch, onBookClick }: NavbarProps) => {
   const [user, setUser] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [darkMode, setDarkMode] = useState(false);
@@ -103,6 +104,7 @@ const Navbar = ({ onSearch }: NavbarProps) => {
     
     setIsSearching(true);
     try {
+      // First search the books_db table for matching titles
       const { data, error } = await supabase
         .from('books_db')
         .select('id, title, author, cover_image_url')
@@ -161,15 +163,33 @@ const Navbar = ({ onSearch }: NavbarProps) => {
     }
   };
 
-  const handleResultClick = (id: string) => {
-    if (onSearch) {
-      // Pass the exact title to ensure the modal opens
-      const book = searchResults.find(book => book.id === id);
-      if (book) {
-        onSearch(book.title);
+  const handleResultClick = async (id: string) => {
+    // When a search result is clicked, we need to find the inventory item with this book_id
+    try {
+      const { data, error } = await supabase
+        .from('inventory_new')
+        .select('id')
+        .eq('book_id', id)
+        .eq('available', true)
+        .limit(1);
+        
+      if (error) throw error;
+      
+      if (data && data.length > 0 && onBookClick) {
+        onBookClick(data[0].id);
         setShowResults(false);
         setSearchQuery('');
+      } else if (onSearch) {
+        // If no inventory item found, use the search by title as fallback
+        const book = searchResults.find(book => book.id === id);
+        if (book) {
+          onSearch(book.title);
+          setShowResults(false);
+          setSearchQuery('');
+        }
       }
+    } catch (error) {
+      console.error('Error finding inventory item:', error);
     }
   };
 
@@ -271,7 +291,7 @@ const Navbar = ({ onSearch }: NavbarProps) => {
                     <UserCircle className="h-6 w-6" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56 bg-white shadow-lg">
+                <DropdownMenuContent align="end" className="w-56 bg-white shadow-lg dark:bg-card">
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-0.5">
                       <p className="text-sm font-medium">{user.email}</p>
@@ -323,7 +343,6 @@ const Navbar = ({ onSearch }: NavbarProps) => {
           {/* Mobile search results dropdown */}
           {showResults && searchResults.length > 0 && (
             <div className="absolute z-50 w-full mt-1 bg-background border rounded-md shadow-lg overflow-hidden">
-              {/* ... Same content as desktop dropdown ... */}
               <div className="p-2">
                 <div className="text-sm font-medium text-muted-foreground mb-2">
                   {isSearching ? 'Searching...' : 'Search Results'}

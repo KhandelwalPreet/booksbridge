@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
@@ -103,13 +104,13 @@ const MyBooks = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F4F6F8]">
+    <div className="min-h-screen flex flex-col bg-[#F4F6F8] dark:bg-background">
       <Navbar />
       
       <main className="flex-grow pt-24 pb-16 px-4">
         <div className="container mx-auto max-w-6xl">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-[#2E86AB]">Your Listed Books</h1>
+            <h1 className="text-3xl font-bold text-[#2E86AB] dark:text-[#2E86AB]">Your Listed Books</h1>
             <Button 
               onClick={() => setModalOpen(true)} 
               className="bg-[#F18F01] hover:bg-[#F18F01]/90"
@@ -118,7 +119,7 @@ const MyBooks = () => {
             </Button>
           </div>
           
-          <div className="bg-white rounded-2xl shadow-md p-6 border border-[#E5E7EB]">
+          <div className="bg-white dark:bg-card rounded-2xl shadow-md p-6 border border-[#E5E7EB] dark:border-border">
             <BooksTable 
               books={books} 
               loading={loading} 
