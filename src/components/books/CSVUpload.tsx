@@ -8,6 +8,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Upload, FileText, AlertCircle, Loader2, Check } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { fetchMultipleBookDetails, EnhancedBookDetails } from '@/utils/googleBooksApi';
 
 interface CSVUploadProps {
   onBooksAdded: () => void;
@@ -17,21 +18,7 @@ interface BookData {
   title?: string;
   isbn?: string;
   found: boolean;
-  details?: {
-    title: string;
-    authors: string[];
-    isbn: string;
-    isbn10?: string;
-    isbn13?: string;
-    imageLinks?: {
-      thumbnail?: string;
-    };
-    publisher?: string;
-    publishedDate?: string;
-    pageCount?: number;
-    description?: string;
-    categories?: string[];
-  };
+  details?: EnhancedBookDetails;
   condition: string;
   selected: boolean;
 }
@@ -120,62 +107,29 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
       const updatedBooks = [...booksToFetch];
       let foundCount = 0;
       
+      const identifiers = booksToFetch.map(book => ({
+        isbn: book.isbn,
+        title: book.title
+      }));
+      
+      const results = await fetchMultipleBookDetails(identifiers);
+      
       for (let i = 0; i < updatedBooks.length; i++) {
-        const book = updatedBooks[i];
+        const bookDetails = results[i];
         
-        const query = book.isbn 
-          ? `isbn:${book.isbn}` 
-          : `intitle:${book.title}`;
-        
-        try {
-          const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(query)}`);
-          const data = await response.json();
+        if (bookDetails) {
+          updatedBooks[i] = {
+            ...updatedBooks[i],
+            found: true,
+            details: bookDetails
+          };
           
-          if (data.items && data.items.length > 0) {
-            const bookInfo = data.items[0].volumeInfo;
-            
-            let isbn10 = '';
-            let isbn13 = '';
-            let foundIsbn = book.isbn || '';
-            
-            if (bookInfo.industryIdentifiers) {
-              const isbn13Obj = bookInfo.industryIdentifiers.find((id: any) => id.type === 'ISBN_13');
-              const isbn10Obj = bookInfo.industryIdentifiers.find((id: any) => id.type === 'ISBN_10');
-              isbn13 = isbn13Obj?.identifier || '';
-              isbn10 = isbn10Obj?.identifier || '';
-              foundIsbn = isbn13 || isbn10 || foundIsbn;
-            }
-            
-            updatedBooks[i] = {
-              ...book,
-              found: true,
-              details: {
-                title: bookInfo.title,
-                authors: bookInfo.authors || ['Unknown Author'],
-                isbn: foundIsbn,
-                isbn10: isbn10 || undefined,
-                isbn13: isbn13 || undefined,
-                imageLinks: bookInfo.imageLinks,
-                publisher: bookInfo.publisher,
-                publishedDate: bookInfo.publishedDate,
-                pageCount: bookInfo.pageCount,
-                description: bookInfo.description,
-                categories: bookInfo.categories
-              }
-            };
-            
-            foundCount++;
-          }
-          
-          if (i % 3 === 0 || i === updatedBooks.length - 1) {
-            setBooks([...updatedBooks]);
-          }
-          
-        } catch (error) {
-          console.error(`Error fetching details for book ${i}:`, error);
+          foundCount++;
         }
         
-        await new Promise(resolve => setTimeout(resolve, 300));
+        if (i % 3 === 0 || i === updatedBooks.length - 1) {
+          setBooks([...updatedBooks]);
+        }
       }
       
       setBooks(updatedBooks);
@@ -278,7 +232,9 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
               description: book.details.description || null,
               categories: book.details.categories?.join(', ') || null,
               page_count: book.details.pageCount || null,
-              cover_image_url: book.details.imageLinks?.thumbnail || null
+              cover_image_url: book.details.imageLinks?.thumbnail || null,
+              language: book.details.language || 'en',
+              google_books_id: book.details.googleBooksId || null
             };
             
             const { data: newBookData, error: insertBookError } = await supabase
@@ -425,13 +381,24 @@ const CSVUpload = ({ onBooksAdded }: CSVUploadProps) => {
                                 by {book.details.authors.join(', ')}
                               </p>
                               <div className="flex flex-col sm:flex-row sm:items-center gap-2 mt-2">
-                                <div className="text-xs">ISBN: {book.details.isbn}</div>
+                                <div className="text-xs">
+                                  {book.details.isbn13 
+                                    ? `ISBN-13: ${book.details.isbn13}` 
+                                    : book.details.isbn10 
+                                      ? `ISBN-10: ${book.details.isbn10}` 
+                                      : ''}
+                                </div>
                                 <div className="text-xs text-gray-500">
                                   {book.details.pageCount ? `${book.details.pageCount} pages` : ''}
                                   {book.details.pageCount && book.details.publishedDate ? ' • ' : ''}
                                   {book.details.publishedDate || ''}
                                 </div>
                               </div>
+                              {book.details.language && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                  Language: {book.details.language.toUpperCase()}
+                                </div>
+                              )}
                             </>
                           ) : (
                             <>

@@ -42,6 +42,13 @@ export interface BookListing extends InventoryItem {
   isbn_13?: string;
   thumbnail_url?: string;
   cover_image_url?: string;
+  categories?: string;
+  language?: string;
+  page_count?: number;
+  publisher?: string;
+  published_date?: string;
+  description?: string;
+  google_books_id?: string;
   
   // UI display properties
   status?: string;

@@ -41,6 +41,7 @@ export const useBookDetails = () => {
           distance = R * c;
         }
 
+        // Create a more comprehensive book details object
         setBookDetails({
           id: data.id,
           title: data.book?.title || 'Unknown Title',
@@ -50,6 +51,15 @@ export const useBookDetails = () => {
           genre: data.book?.categories || 'Uncategorized',
           language: data.book?.language || 'Unknown',
           description: data.book?.description || 'No description available',
+          isbn10: data.book?.isbn_10 || null,
+          isbn13: data.book?.isbn_13 || null,
+          publisher: data.book?.publisher || null,
+          publishedDate: data.book?.published_date || null,
+          googleBooksId: data.book?.google_books_id || null,
+          condition: data.condition || 'Good',
+          conditionNotes: data.condition_notes || null,
+          lendingDuration: data.lending_duration || 14,
+          pickupPreferences: data.pickup_preferences || null,
           listings: [{
             id: data.id,
             lenderId: data.lender_id,

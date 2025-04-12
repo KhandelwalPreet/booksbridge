@@ -15,24 +15,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Search, Loader2, Check } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
-
-interface BookDetails {
-  title: string;
-  authors: string[];
-  description?: string;
-  pageCount?: number;
-  categories?: string[];
-  publisher?: string;
-  publishedDate?: string;
-  imageLinks?: {
-    thumbnail?: string;
-    smallThumbnail?: string;
-  };
-  industryIdentifiers?: Array<{
-    type: string;
-    identifier: string;
-  }>;
-}
+import { fetchBookByISBN, EnhancedBookDetails } from '@/utils/googleBooksApi';
 
 interface ISBNSearchProps {
   onBookAdded: () => void;
@@ -41,13 +24,13 @@ interface ISBNSearchProps {
 const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
   const [isbn, setIsbn] = useState('');
   const [loading, setLoading] = useState(false);
-  const [bookDetails, setBookDetails] = useState<BookDetails | null>(null);
+  const [bookDetails, setBookDetails] = useState<EnhancedBookDetails | null>(null);
   const [condition, setCondition] = useState('Good');
   const [notes, setNotes] = useState('');
   const [confirmed, setConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const fetchBookByISBN = async () => {
+  const handleISBNSearch = async () => {
     if (!isbn || isbn.length < 10) {
       toast.error("Please enter a valid ISBN");
       return;
@@ -55,12 +38,10 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
 
     try {
       setLoading(true);
-      const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`);
-      const data = await response.json();
+      const bookData = await fetchBookByISBN(isbn);
       
-      if (data.items && data.items.length > 0) {
-        const bookInfo = data.items[0].volumeInfo;
-        setBookDetails(bookInfo);
+      if (bookData) {
+        setBookDetails(bookData);
         toast.success("Book found!");
       } else {
         toast.error("No book found with that ISBN");
@@ -91,35 +72,24 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
         return;
       }
 
-      // Find ISBN-13 or fallback to ISBN-10
-      let isbn10 = null;
-      let isbn13 = null;
-      
-      if (bookDetails.industryIdentifiers) {
-        const isbn13Object = bookDetails.industryIdentifiers.find(id => id.type === 'ISBN_13');
-        const isbn10Object = bookDetails.industryIdentifiers.find(id => id.type === 'ISBN_10');
-        isbn13 = isbn13Object?.identifier || null;
-        isbn10 = isbn10Object?.identifier || null;
-      }
-      
       // First check if the book already exists in books_db
       let bookId;
       let existingBookData = null;
       let bookQueryError = null;
       
-      if (isbn13) {
+      if (bookDetails.isbn13) {
         const query = await supabase
           .from('books_db')
           .select('id')
-          .eq('isbn_13', isbn13);
+          .eq('isbn_13', bookDetails.isbn13);
           
         existingBookData = query.data;
         bookQueryError = query.error;
-      } else if (isbn10) {
+      } else if (bookDetails.isbn10) {
         const query = await supabase
           .from('books_db')
           .select('id')
-          .eq('isbn_10', isbn10);
+          .eq('isbn_10', bookDetails.isbn10);
           
         existingBookData = query.data;
         bookQueryError = query.error;
@@ -144,19 +114,20 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
         // Book already exists, use its ID
         bookId = existingBookData[0].id;
       } else {
-        // Book doesn't exist, create it in books_db
+        // Book doesn't exist, create it in books_db with enhanced data
         const bookData = {
           title: bookDetails.title,
           author: bookDetails.authors ? bookDetails.authors.join(', ') : 'Unknown Author',
-          isbn_10: isbn10,
-          isbn_13: isbn13,
+          isbn_10: bookDetails.isbn10 || null,
+          isbn_13: bookDetails.isbn13 || null,
           publisher: bookDetails.publisher || null,
           published_date: bookDetails.publishedDate || null,
           description: bookDetails.description || null,
           categories: bookDetails.categories ? bookDetails.categories.join(', ') : null,
           page_count: bookDetails.pageCount || null,
           cover_image_url: bookDetails.imageLinks?.thumbnail || null,
-          google_books_id: null // Could extract this if needed
+          language: bookDetails.language || 'en',
+          google_books_id: bookDetails.googleBooksId || null
         };
         
         const { data: newBookData, error: insertBookError } = await supabase
@@ -222,7 +193,7 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
             />
             <Button 
               className="absolute right-0 top-0 h-full rounded-l-none bg-[#2E86AB] hover:bg-[#2E86AB]/90"
-              onClick={fetchBookByISBN}
+              onClick={handleISBNSearch}
               disabled={loading || isbn.length < 10}
             >
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4 mr-1" />}
@@ -277,6 +248,18 @@ const ISBNSearch = ({ onBookAdded }: ISBNSearchProps) => {
                     <p className="text-sm text-[#6B7280]">Categories</p>
                     <p className="text-sm">{bookDetails.categories ? bookDetails.categories.join(', ') : 'N/A'}</p>
                   </div>
+                  {bookDetails.language && (
+                    <div>
+                      <p className="text-sm text-[#6B7280]">Language</p>
+                      <p className="text-sm">{bookDetails.language.toUpperCase()}</p>
+                    </div>
+                  )}
+                  {bookDetails.isbn13 && (
+                    <div>
+                      <p className="text-sm text-[#6B7280]">ISBN-13</p>
+                      <p className="text-sm">{bookDetails.isbn13}</p>
+                    </div>
+                  )}
                 </div>
 
                 <p className="text-sm text-[#6B7280] mt-4">Description</p>
