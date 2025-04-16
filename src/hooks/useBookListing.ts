@@ -27,23 +27,8 @@ export const useBookListing = (): UseBookListingResult => {
         return null;
       }
 
-      // First, get the user's location from their profile
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('latitude, longitude')
-        .eq('id', session.user.id)
-        .single();
-      
-      if (profileError) {
-        console.error('Error fetching user profile:', profileError);
-      }
-
-      // Use either provided location, profile location, or fallback
-      const locationToUse = location || 
-        (profileData && profileData.latitude && profileData.longitude ? 
-          { latitude: profileData.latitude, longitude: profileData.longitude } : 
-          userLocation || 
-          { latitude: 0, longitude: 0 });
+      // Use either provided location or the user's location from profile
+      const locationToUse = location || userLocation || { latitude: 0, longitude: 0 };
 
       const inventoryData = {
         ...bookData,
@@ -51,8 +36,6 @@ export const useBookListing = (): UseBookListingResult => {
         latitude: locationToUse.latitude,
         longitude: locationToUse.longitude
       };
-
-      console.log('Listing book with location:', locationToUse);
 
       const { data, error } = await supabase
         .from('inventory_new')

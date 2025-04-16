@@ -2,95 +2,68 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { BookOpen, MapPin, Search, Users, ArrowRight } from 'lucide-react';
+import { BookOpen, Search, PlusCircle } from 'lucide-react';
 
 const HeroSection = () => {
   return (
-    <section className="relative min-h-[90vh] flex flex-col justify-center">
-      {/* Background with purple gradient and image overlay */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-violet-800/80 to-indigo-900/70 z-10"></div>
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=2070')] bg-cover bg-center mix-blend-overlay opacity-40"></div>
-        <div 
-          className="absolute inset-0 bg-[url('https://gist.githubusercontent.com/GrantJamesdotme/c50cc31745115bead6c70aa1be21b784/raw/217ca01157c2d9c0d09ca97742e089b6756e89a9/grain.svg')] 
-          opacity-[0.15] [mask-image:linear-gradient(0deg,rgba(0,0,0,0)_0%,rgba(0,0,0,1)_100%)] pointer-events-none"
-        ></div>
+    <section className="relative h-[80vh] flex items-center">
+      {/* Background with purple gradient */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-900 to-indigo-800"></div>
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1513185041617-8ab03f83d6c5?q=80&w=2070')] bg-cover bg-center mix-blend-overlay opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background/95"></div>
       </div>
       
       {/* Content */}
-      <div className="container mx-auto px-4 z-20 text-white">
-        <div className="max-w-3xl mx-auto md:mx-0">
-          <span className="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-sm font-medium mb-6">
-            A community of book lovers
-          </span>
-          
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-            <span className="text-gradient">Share books,</span> build connections
+      <div className="container mx-auto px-4 z-10 text-white">
+        <div className="max-w-3xl">
+          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-purple-200 to-white">
+            Share Books, Connect Minds
           </h1>
-          
-          <p className="text-lg md:text-xl mb-8 text-white/80 leading-relaxed max-w-2xl">
-            Join our vibrant community where readers connect to share books, exchange ideas, and discover new stories together. Your next favorite book is just around the corner.
+          <p className="text-xl md:text-2xl mb-8 text-purple-100 leading-relaxed">
+            Find books in your neighborhood, share your collection, and join a community of readers who love to exchange stories and ideas.
           </p>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 max-w-xl">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8">
+            <Button 
+              size="lg"
+              className="bg-purple-600 hover:bg-purple-700 text-white py-6 flex items-center justify-center gap-2 rounded-xl shadow-lg shadow-purple-700/30"
+            >
+              <Search className="h-5 w-5" /> Find Books Nearby
+            </Button>
+            
             <Button 
               size="lg"
               asChild
-              className="bg-primary text-white hover:bg-primary/90 py-6 rounded-xl shadow-lg shadow-primary/25 btn-glow flex items-center justify-center gap-2"
+              className="bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/50 text-white py-6 flex items-center justify-center gap-2 rounded-xl backdrop-blur-sm"
             >
               <Link to="/my-books">
-                <Search className="h-5 w-5" /> Discover Books
+                <BookOpen className="h-5 w-5" /> Explore Library
               </Link>
             </Button>
             
             <Button 
               size="lg"
               asChild
-              variant="outline"
-              className="border-white/20 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 py-6 flex items-center justify-center gap-2 rounded-xl"
+              variant="secondary"
+              className="bg-white text-purple-900 hover:bg-purple-50 py-6 flex items-center justify-center gap-2 rounded-xl shadow-lg"
             >
-              <Link to="/list-book">
-                <BookOpen className="h-5 w-5" /> Share Your Library
+              <Link to="/my-books">
+                <PlusCircle className="h-5 w-5" /> Share Your Books
               </Link>
             </Button>
           </div>
           
-          <div className="mt-12 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8">
-            <div className="flex items-center gap-2">
-              <div className="bg-white/10 backdrop-blur-sm p-2 rounded-lg">
-                <MapPin className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-white/80">Find books near you</p>
-              </div>
+          <div className="mt-12 flex items-center gap-3">
+            <div className="flex -space-x-4">
+              <div className="w-10 h-10 rounded-full bg-purple-400 flex items-center justify-center text-purple-900 font-bold border-2 border-purple-900">K</div>
+              <div className="w-10 h-10 rounded-full bg-indigo-400 flex items-center justify-center text-purple-900 font-bold border-2 border-purple-900">S</div>
+              <div className="w-10 h-10 rounded-full bg-violet-400 flex items-center justify-center text-purple-900 font-bold border-2 border-purple-900">M</div>
+              <div className="w-10 h-10 rounded-full bg-blue-400 flex items-center justify-center text-purple-900 font-bold border-2 border-purple-900">+</div>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <div className="bg-white/10 backdrop-blur-sm p-2 rounded-lg">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-white/80">Join 2,000+ readers</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <div className="bg-white/10 backdrop-blur-sm p-2 rounded-lg">
-                <BookOpen className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-white/80">Over 5,000 books shared</p>
-              </div>
-            </div>
+            <p className="text-sm text-purple-200">Join 2,000+ readers already sharing books in your area</p>
           </div>
         </div>
-      </div>
-      
-      {/* Curved bottom edge */}
-      <div className="absolute bottom-0 left-0 right-0 z-10">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320" className="fill-background w-full h-auto">
-          <path d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,261.3C672,256,768,224,864,213.3C960,203,1056,213,1152,224C1248,235,1344,245,1392,250.7L1440,256L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path>
-        </svg>
       </div>
     </section>
   );
