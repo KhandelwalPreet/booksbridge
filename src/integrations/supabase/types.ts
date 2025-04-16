@@ -68,9 +68,11 @@ export type Database = {
           condition_notes: string | null
           created_at: string
           id: string
+          latitude: number | null
           lender_id: string
           lending_duration: number
           location: string | null
+          longitude: number | null
           pickup_preferences: string | null
           updated_at: string
         }
@@ -81,9 +83,11 @@ export type Database = {
           condition_notes?: string | null
           created_at?: string
           id?: string
+          latitude?: number | null
           lender_id: string
           lending_duration: number
           location?: string | null
+          longitude?: number | null
           pickup_preferences?: string | null
           updated_at?: string
         }
@@ -94,9 +98,11 @@ export type Database = {
           condition_notes?: string | null
           created_at?: string
           id?: string
+          latitude?: number | null
           lender_id?: string
           lending_duration?: number
           location?: string | null
+          longitude?: number | null
           pickup_preferences?: string | null
           updated_at?: string
         }

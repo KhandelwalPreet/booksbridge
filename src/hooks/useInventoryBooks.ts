@@ -8,6 +8,7 @@ interface UseInventoryBooksResult {
   loading: boolean;
   error: any;
   refetch: () => Promise<void>;
+  listBook: (bookData: any, location?: {latitude: number, longitude: number}) => Promise<BookListing | null>;
 }
 
 export const useInventoryBooks = (
@@ -75,9 +76,39 @@ export const useInventoryBooks = (
     }
   };
 
+  const listBook = async (bookData: any, location?: {latitude: number, longitude: number}) => {
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session?.user) {
+        console.error('No authenticated user');
+        return null;
+      }
+
+      const inventoryData = {
+        ...bookData,
+        lender_id: session.user.id,
+        latitude: location?.latitude || 0,
+        longitude: location?.longitude || 0
+      };
+
+      const { data, error } = await supabase
+        .from('inventory_new')
+        .insert(inventoryData)
+        .select();
+
+      if (error) throw error;
+
+      return data?.[0] as BookListing;
+    } catch (err) {
+      console.error('Error listing book:', err);
+      return null;
+    }
+  };
+
   useEffect(() => {
     fetchBooks();
   }, [category, limit]);
 
-  return { books, loading, error, refetch: fetchBooks };
+  return { books, loading, error, refetch: fetchBooks, listBook };
 };

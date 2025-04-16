@@ -50,11 +50,14 @@ export const useSearch = (
     
     setIsSearching(true);
     try {
+      // Enhanced search with multiple conditions
       const { data, error } = await supabase
         .from('books_db')
         .select('id, title, author, cover_image_url')
-        .ilike('title', `%${query}%`)
-        .limit(5);
+        .or(
+          `title.ilike.%${query}%, author.ilike.%${query}%, categories.ilike.%${query}%`
+        )
+        .limit(10);
         
       if (error) throw error;
       
