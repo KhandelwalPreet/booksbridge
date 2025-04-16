@@ -1,55 +1,62 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 270 15% 8%; /* Dark purple background */
+    --background: 210 20% 10%; /* Dark blue-gray background */
     --foreground: 0 0% 95%; /* Light text for contrast */
-    --card: 270 15% 12%; /* Slightly lighter than background */
+    --card: 210 20% 12%; /* Slightly lighter than background */
     --card-foreground: 0 0% 95%;
-    --primary: 265 60% 65%; /* Purple primary color */
+    --primary: 198 57% 43%; /* Keeping existing primary color */
     --primary-foreground: 0 0% 100%;
-    --secondary: 270 15% 15%; /* Dark secondary elements */
+    --secondary: 210 20% 15%; /* Dark secondary elements */
     --secondary-foreground: 0 0% 90%;
-    --muted: 270 15% 20%; /* Muted background elements */
-    --muted-foreground: 270 10% 60%;
-    --accent: 280 75% 60%; /* Vivid purple accent color */
+    --muted: 210 20% 20%; /* Muted background elements */
+    --muted-foreground: 210 10% 60%;
+    --accent: 35 99% 48%; /* Keeping existing accent color */
     --accent-foreground: 0 0% 100%;
     --destructive: 6 78% 47%;
     --destructive-foreground: 0 0% 98%;
-    --border: 270 15% 25%; /* Dark borders */
-    --input: 270 15% 25%;
-    --ring: 265 60% 65%;
-    
-    /* Book app specific colors */
-    --book-warm: 280 75% 60%; /* Purple replacing warm orange */
-    --book-maroon: 265 60% 65%; /* Purple replacing maroon */
+    --border: 210 20% 25%; /* Dark borders */
+    --input: 210 20% 25%;
+    --ring: 198 57% 43%;
   }
 
   .dark {
-    --background: 270 15% 8%; /* Dark purple background */
-    --foreground: 0 0% 95%; /* Light text for contrast */
-    --card: 270 15% 12%; /* Slightly lighter than background */
-    --card-foreground: 0 0% 95%;
-    --primary: 265 60% 65%; /* Purple primary color */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 270 15% 15%; /* Dark secondary elements */
-    --secondary-foreground: 0 0% 90%;
-    --muted: 270 15% 20%; /* Muted background elements */
-    --muted-foreground: 270 10% 60%;
-    --accent: 280 75% 60%; /* Vivid purple accent color */
-    --accent-foreground: 0 0% 100%;
-    --destructive: 6 78% 47%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 270 15% 25%; /* Dark borders */
-    --input: 270 15% 25%;
-    --ring: 265 60% 65%;
+    --background: 0 0% 11%; /* #1C1C1C */
+    --foreground: 210 33% 96%; /* #F4F6F8 */
 
-    /* Book app specific colors */
-    --book-warm: 280 75% 60%; /* Purple replacing warm orange */
-    --book-maroon: 265 60% 65%; /* Purple replacing maroon */
+    --card: 0 0% 15%; /* #262626 */
+    --card-foreground: 210 33% 96%; /* #F4F6F8 */
+
+    --popover: 0 0% 15%; /* #262626 */
+    --popover-foreground: 210 33% 96%; /* #F4F6F8 */
+
+    --primary: 198 57% 43%; /* #2E86AB */
+    --primary-foreground: 0 0% 100%; /* #FFFFFF */
+
+    --secondary: 0 0% 20%; /* #333333 */
+    --secondary-foreground: 210 33% 96%; /* #F4F6F8 */
+
+    --muted: 0 0% 25%; /* #404040 */
+    --muted-foreground: 220 9% 65%; /* #8D95A5 */
+
+    --accent: 35 99% 48%; /* #F18F01 */
+    --accent-foreground: 0 0% 100%; /* #FFFFFF */
+
+    --destructive: 6 78% 47%; /* #C0392B */
+    --destructive-foreground: 0 0% 98%; /* #FAFAFA */
+
+    --success: 145 50% 42%; /* #27AE60 */
+    --success-foreground: 0 0% 100%; /* #FFFFFF */
+
+    --border: 0 0% 25%; /* #404040 */
+    --input: 0 0% 25%; /* #404040 */
+    --ring: 198 57% 43%; /* #2E86AB */
+
+    --book-warm: 35 99% 48%; /* #F18F01 */
+    --book-maroon: 198 57% 43%; /* #2E86AB */
   }
 }
 
@@ -86,17 +93,4 @@
 
 .hero-gradient {
   background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%);
-}
-
-/* Add new purple-themed styling */
-.purple-gradient {
-  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-}
-
-.card-hover {
-  @apply transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/20;
-}
-
-.glass-card {
-  @apply bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl;
 }

@@ -17,17 +17,17 @@ const BooksTable = ({ books, loading, onEdit, onDelete }: BooksTableProps) => {
   if (loading) {
     return (
       <div className="text-center py-10">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mx-auto"></div>
-        <p className="mt-4 text-gray-500 dark:text-gray-400">Loading your books...</p>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-book-warm mx-auto"></div>
+        <p className="mt-4 text-gray-500">Loading your books...</p>
       </div>
     );
   }
 
   if (books.length === 0) {
     return (
-      <div className="text-center py-10 border rounded-lg bg-gray-50 dark:bg-gray-800">
-        <h3 className="text-lg font-medium mb-2 dark:text-white">You haven't listed any books yet</h3>
-        <p className="text-gray-500 dark:text-gray-400 mb-6">Add your first book to start sharing with the community</p>
+      <div className="text-center py-10 border rounded-lg bg-gray-50">
+        <h3 className="text-lg font-medium mb-2">You haven't listed any books yet</h3>
+        <p className="text-gray-500 mb-6">Add your first book to start sharing with the community</p>
       </div>
     );
   }
@@ -35,21 +35,21 @@ const BooksTable = ({ books, loading, onEdit, onDelete }: BooksTableProps) => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'Listed':
-        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+        return 'bg-green-100 text-green-800';
       case 'Lent':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+        return 'bg-blue-100 text-blue-800';
       case 'Returned':
-        return 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300';
+        return 'bg-amber-100 text-amber-800';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
   return (
-    <div className="bg-white dark:bg-gray-900 shadow rounded-lg overflow-hidden">
+    <div className="bg-white shadow rounded-lg overflow-hidden">
       <Table>
         <TableHeader>
-          <TableRow className="bg-gray-50 dark:bg-gray-800">
+          <TableRow>
             <TableHead className="w-[100px]">Cover</TableHead>
             <TableHead>Title</TableHead>
             <TableHead>Author</TableHead>
@@ -61,9 +61,9 @@ const BooksTable = ({ books, loading, onEdit, onDelete }: BooksTableProps) => {
         </TableHeader>
         <TableBody>
           {books.map((book) => (
-            <TableRow key={book.id} className="dark:border-gray-700">
+            <TableRow key={book.id}>
               <TableCell>
-                <div className="h-16 w-12 bg-gray-200 dark:bg-gray-700 rounded overflow-hidden">
+                <div className="h-16 w-12 bg-gray-200 rounded overflow-hidden">
                   {book.book?.cover_image_url || book.thumbnail_url ? (
                     <img
                       src={book.book?.cover_image_url || book.thumbnail_url}
@@ -74,16 +74,16 @@ const BooksTable = ({ books, loading, onEdit, onDelete }: BooksTableProps) => {
                       }}
                     />
                   ) : (
-                    <div className="h-full w-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-xs">
+                    <div className="h-full w-full flex items-center justify-center text-gray-400 text-xs">
                       No Cover
                     </div>
                   )}
                 </div>
               </TableCell>
-              <TableCell className="font-medium dark:text-white">{book.book?.title || book.title}</TableCell>
-              <TableCell className="dark:text-gray-300">{book.book?.author || book.author}</TableCell>
-              <TableCell className="font-mono text-xs dark:text-gray-400">{book.book?.isbn_13 || book.book?.isbn_10 || book.isbn || 'N/A'}</TableCell>
-              <TableCell className="dark:text-gray-300">{book.condition}</TableCell>
+              <TableCell className="font-medium">{book.book?.title || book.title}</TableCell>
+              <TableCell>{book.book?.author || book.author}</TableCell>
+              <TableCell className="font-mono text-xs">{book.book?.isbn_13 || book.book?.isbn_10 || book.isbn || 'N/A'}</TableCell>
+              <TableCell>{book.condition}</TableCell>
               <TableCell>
                 <Badge variant="outline" className={`${getStatusColor(book.status || 'Listed')}`}>
                   {book.status || 'Listed'}
@@ -95,14 +95,13 @@ const BooksTable = ({ books, loading, onEdit, onDelete }: BooksTableProps) => {
                     variant="outline"
                     size="sm"
                     onClick={() => onEdit(book.id)}
-                    className="dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
                   >
                     <Edit className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="text-red-500 hover:text-red-700 hover:bg-red-50 dark:border-gray-600 dark:text-red-400 dark:hover:bg-gray-800"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50"
                     onClick={() => onDelete(book.id)}
                   >
                     <Trash2 className="h-4 w-4" />
