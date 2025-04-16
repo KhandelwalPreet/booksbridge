@@ -14,7 +14,6 @@ import SearchResults from '@/components/search/SearchResults';
 import GenreCarousels from '@/components/genres/GenreCarousels';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, Users, MapPin, TrendingUp } from 'lucide-react';
-import MessageUI from '@/components/messaging/MessageUI';
 
 // List of genres for categorization
 const GENRES = [
@@ -76,7 +75,7 @@ const Index = () => {
     <div className="min-h-screen flex flex-col bg-background dark:bg-background">
       <Navbar onSearch={handleSearch} onBookClick={handleBookClick} />
       
-      <main className="flex-grow pt-16">
+      <main className="flex-grow">
         <HeroSection />
         
         <div className="container mx-auto px-4 py-12">
@@ -151,17 +150,6 @@ const Index = () => {
               allBooks={allBooks} 
               onBookClick={handleBookClick} 
             />
-          </div>
-          
-          {/* Messaging Preview Section */}
-          <div className="my-16">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-gradient">Connect with Fellow Readers</h2>
-              <p className="text-muted-foreground max-w-xl mx-auto mt-2">
-                Our messaging system makes it easy to coordinate book exchanges and discuss your favorite stories
-              </p>
-            </div>
-            <MessageUI />
           </div>
         </div>
         

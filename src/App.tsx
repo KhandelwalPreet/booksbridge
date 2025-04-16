@@ -9,6 +9,7 @@ import ListBook from "./pages/ListBook";
 import MyBooks from "./pages/MyBooks";
 import NotFound from "./pages/NotFound";
 import AuthPage from "./pages/AuthPage";
+import Messages from "./pages/Messages";
 
 const queryClient = new QueryClient();
 
@@ -23,6 +24,7 @@ const App = () => (
           <Route path="/list-book" element={<ListBook />} />
           <Route path="/my-books" element={<MyBooks />} />
           <Route path="/auth" element={<AuthPage />} />
+          <Route path="/messages" element={<Messages />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

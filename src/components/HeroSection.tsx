@@ -2,44 +2,38 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { BookOpen, MapPin, Search, Users, ArrowRight } from 'lucide-react';
+import { Search, BookOpen, Plus } from 'lucide-react';
 
 const HeroSection = () => {
   return (
     <section className="relative min-h-[90vh] flex flex-col justify-center">
       {/* Background with purple gradient and image overlay */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-violet-800/80 to-indigo-900/70 z-10"></div>
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1521587760476-6c12a4b040da?q=80&w=2070')] bg-cover bg-center mix-blend-overlay opacity-40"></div>
-        <div 
-          className="absolute inset-0 bg-[url('https://gist.githubusercontent.com/GrantJamesdotme/c50cc31745115bead6c70aa1be21b784/raw/217ca01157c2d9c0d09ca97742e089b6756e89a9/grain.svg')] 
-          opacity-[0.15] [mask-image:linear-gradient(0deg,rgba(0,0,0,0)_0%,rgba(0,0,0,1)_100%)] pointer-events-none"
-        ></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-purple-900/90 via-purple-800 to-indigo-900/90 z-10"></div>
+        <div className="absolute inset-0 bg-[url('/lovable-uploads/f4b12f86-3a42-4332-bf8a-d1b7d408ad83.png')] bg-cover bg-center opacity-60 mix-blend-overlay"></div>
+        <div className="absolute inset-0 bg-[url('https://gist.githubusercontent.com/GrantJamesdotme/c50cc31745115bead6c70aa1be21b784/raw/217ca01157c2d9c0d09ca97742e089b6756e89a9/grain.svg')] opacity-[0.15] pointer-events-none"></div>
       </div>
       
       {/* Content */}
       <div className="container mx-auto px-4 z-20 text-white">
         <div className="max-w-3xl mx-auto md:mx-0">
-          <span className="inline-block py-1 px-3 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-sm font-medium mb-6">
-            A community of book lovers
-          </span>
-          
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 leading-tight">
-            <span className="text-gradient">Share books,</span> build connections
+          <h1 className="text-5xl md:text-7xl font-bold mb-4 leading-tight">
+            Share Books,<br /> Connect <span className="text-amber-400">Minds</span>
           </h1>
           
           <p className="text-lg md:text-xl mb-8 text-white/80 leading-relaxed max-w-2xl">
-            Join our vibrant community where readers connect to share books, exchange ideas, and discover new stories together. Your next favorite book is just around the corner.
+            Find books in your neighborhood, share your collection, and join a
+            community of readers who love to exchange stories and ideas.
           </p>
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 max-w-xl">
+          <div className="flex flex-col sm:flex-row gap-4 mt-8">
             <Button 
               size="lg"
               asChild
-              className="bg-primary text-white hover:bg-primary/90 py-6 rounded-xl shadow-lg shadow-primary/25 btn-glow flex items-center justify-center gap-2"
+              className="bg-violet-600 text-white hover:bg-violet-700 py-6 flex items-center justify-center gap-2 rounded-full"
             >
               <Link to="/my-books">
-                <Search className="h-5 w-5" /> Discover Books
+                <Search className="h-5 w-5" /> Find Books Nearby
               </Link>
             </Button>
             
@@ -47,41 +41,35 @@ const HeroSection = () => {
               size="lg"
               asChild
               variant="outline"
-              className="border-white/20 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 py-6 flex items-center justify-center gap-2 rounded-xl"
+              className="border-white/20 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 py-6 flex items-center justify-center gap-2 rounded-full"
+            >
+              <Link to="/my-books">
+                <BookOpen className="h-5 w-5" /> Explore Library
+              </Link>
+            </Button>
+            
+            <Button 
+              size="lg"
+              asChild
+              className="bg-amber-600 text-white hover:bg-amber-700 py-6 flex items-center justify-center gap-2 rounded-full"
             >
               <Link to="/list-book">
-                <BookOpen className="h-5 w-5" /> Share Your Library
+                <Plus className="h-5 w-5" /> Share Your Books
               </Link>
             </Button>
           </div>
           
-          <div className="mt-12 flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-8">
-            <div className="flex items-center gap-2">
-              <div className="bg-white/10 backdrop-blur-sm p-2 rounded-lg">
-                <MapPin className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-white/80">Find books near you</p>
-              </div>
+          {/* User avatars */}
+          <div className="mt-12 flex items-center">
+            <div className="flex -space-x-3">
+              <div className="w-10 h-10 rounded-full bg-violet-400 flex items-center justify-center border-2 border-white text-sm font-medium">K</div>
+              <div className="w-10 h-10 rounded-full bg-amber-400 flex items-center justify-center border-2 border-white text-sm font-medium">S</div>
+              <div className="w-10 h-10 rounded-full bg-pink-400 flex items-center justify-center border-2 border-white text-sm font-medium">M</div>
+              <div className="w-10 h-10 rounded-full bg-blue-400 flex items-center justify-center border-2 border-white text-sm font-medium">+</div>
             </div>
-            
-            <div className="flex items-center gap-2">
-              <div className="bg-white/10 backdrop-blur-sm p-2 rounded-lg">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-white/80">Join 2,000+ readers</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <div className="bg-white/10 backdrop-blur-sm p-2 rounded-lg">
-                <BookOpen className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-white/80">Over 5,000 books shared</p>
-              </div>
-            </div>
+            <span className="ml-4 text-sm text-white/80">
+              Join 2,000+ readers already sharing books in your area
+            </span>
           </div>
         </div>
       </div>

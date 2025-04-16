@@ -11,23 +11,24 @@
     --card-foreground: 260 25% 15%;
     --popover: 260 30% 99%;
     --popover-foreground: 260 25% 15%;
-    --primary: 265 60% 55%;
+    --primary: 270 60% 55%;
     --primary-foreground: 260 30% 98%;
     --secondary: 260 25% 92%;
     --secondary-foreground: 260 30% 20%;
     --muted: 260 20% 92%;
     --muted-foreground: 260 20% 40%;
-    --accent: 280 75% 60%;
+    --accent: 39 100% 65%;
     --accent-foreground: 260 30% 98%;
     --destructive: 0 85% 60%;
     --destructive-foreground: 260 30% 98%;
     --border: 260 25% 90%;
     --input: 260 25% 90%;
-    --ring: 265 60% 55%;
+    --ring: 270 60% 55%;
     
     /* Book app specific colors */
-    --book-warm: 280 75% 60%;
-    --book-maroon: 265 60% 55%;
+    --book-warm: 39 100% 65%;
+    --book-maroon: 348 83% 47%;
+    --book-violet: 270 67% 60%;
   }
 
   .dark {
@@ -37,23 +38,24 @@
     --card-foreground: 260 15% 95%;
     --popover: 260 25% 15%;
     --popover-foreground: 260 15% 95%;
-    --primary: 265 60% 65%;
+    --primary: 270 60% 65%;
     --primary-foreground: 0 0% 100%;
     --secondary: 260 20% 20%;
     --secondary-foreground: 260 15% 90%;
     --muted: 260 20% 20%;
     --muted-foreground: 260 15% 65%;
-    --accent: 280 75% 60%;
+    --accent: 39 100% 65%;
     --accent-foreground: 0 0% 100%;
     --destructive: 0 85% 65%;
     --destructive-foreground: 0 0% 98%;
     --border: 260 20% 25%;
     --input: 260 20% 25%;
-    --ring: 265 60% 65%;
+    --ring: 270 60% 65%;
 
     /* Book app specific colors */
-    --book-warm: 280 75% 60%;
-    --book-maroon: 265 60% 65%;
+    --book-warm: 39 100% 65%;
+    --book-maroon: 348 83% 57%;
+    --book-violet: 270 67% 70%;
   }
 }
 
