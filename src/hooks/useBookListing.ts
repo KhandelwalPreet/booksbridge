@@ -1,7 +1,8 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BookListing } from '@/types/database';
+import { useUserLocation } from '@/hooks/useUserLocation';
 
 interface UseBookListingResult {
   listBook: (bookData: any, location?: {latitude: number, longitude: number}) => Promise<BookListing | null>;
@@ -12,6 +13,7 @@ interface UseBookListingResult {
 export const useBookListing = (): UseBookListingResult => {
   const [listingLoading, setListingLoading] = useState<boolean>(false);
   const [listingError, setListingError] = useState<any>(null);
+  const { userLocation } = useUserLocation();
 
   const listBook = async (bookData: any, location?: {latitude: number, longitude: number}) => {
     try {
@@ -25,11 +27,14 @@ export const useBookListing = (): UseBookListingResult => {
         return null;
       }
 
+      // Use either provided location or the user's location from profile
+      const locationToUse = location || userLocation || { latitude: 0, longitude: 0 };
+
       const inventoryData = {
         ...bookData,
         lender_id: session.user.id,
-        latitude: location?.latitude || 0,
-        longitude: location?.longitude || 0
+        latitude: locationToUse.latitude,
+        longitude: locationToUse.longitude
       };
 
       const { data, error } = await supabase
