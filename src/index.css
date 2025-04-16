@@ -1,62 +1,59 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer base {
   :root {
-    --background: 210 20% 10%; /* Dark blue-gray background */
-    --foreground: 0 0% 95%; /* Light text for contrast */
-    --card: 210 20% 12%; /* Slightly lighter than background */
-    --card-foreground: 0 0% 95%;
-    --primary: 198 57% 43%; /* Keeping existing primary color */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 210 20% 15%; /* Dark secondary elements */
-    --secondary-foreground: 0 0% 90%;
-    --muted: 210 20% 20%; /* Muted background elements */
-    --muted-foreground: 210 10% 60%;
-    --accent: 35 99% 48%; /* Keeping existing accent color */
-    --accent-foreground: 0 0% 100%;
-    --destructive: 6 78% 47%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 210 20% 25%; /* Dark borders */
-    --input: 210 20% 25%;
-    --ring: 198 57% 43%;
+    --background: 260 20% 98%;
+    --foreground: 260 25% 15%;
+    --card: 260 30% 99%;
+    --card-foreground: 260 25% 15%;
+    --popover: 260 30% 99%;
+    --popover-foreground: 260 25% 15%;
+    --primary: 265 60% 55%;
+    --primary-foreground: 260 30% 98%;
+    --secondary: 260 25% 92%;
+    --secondary-foreground: 260 30% 20%;
+    --muted: 260 20% 92%;
+    --muted-foreground: 260 20% 40%;
+    --accent: 280 75% 60%;
+    --accent-foreground: 260 30% 98%;
+    --destructive: 0 85% 60%;
+    --destructive-foreground: 260 30% 98%;
+    --border: 260 25% 90%;
+    --input: 260 25% 90%;
+    --ring: 265 60% 55%;
+    
+    /* Book app specific colors */
+    --book-warm: 280 75% 60%;
+    --book-maroon: 265 60% 55%;
   }
 
   .dark {
-    --background: 0 0% 11%; /* #1C1C1C */
-    --foreground: 210 33% 96%; /* #F4F6F8 */
+    --background: 260 25% 10%;
+    --foreground: 260 15% 95%;
+    --card: 260 25% 15%;
+    --card-foreground: 260 15% 95%;
+    --popover: 260 25% 15%;
+    --popover-foreground: 260 15% 95%;
+    --primary: 265 60% 65%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 260 20% 20%;
+    --secondary-foreground: 260 15% 90%;
+    --muted: 260 20% 20%;
+    --muted-foreground: 260 15% 65%;
+    --accent: 280 75% 60%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 0 85% 65%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 260 20% 25%;
+    --input: 260 20% 25%;
+    --ring: 265 60% 65%;
 
-    --card: 0 0% 15%; /* #262626 */
-    --card-foreground: 210 33% 96%; /* #F4F6F8 */
-
-    --popover: 0 0% 15%; /* #262626 */
-    --popover-foreground: 210 33% 96%; /* #F4F6F8 */
-
-    --primary: 198 57% 43%; /* #2E86AB */
-    --primary-foreground: 0 0% 100%; /* #FFFFFF */
-
-    --secondary: 0 0% 20%; /* #333333 */
-    --secondary-foreground: 210 33% 96%; /* #F4F6F8 */
-
-    --muted: 0 0% 25%; /* #404040 */
-    --muted-foreground: 220 9% 65%; /* #8D95A5 */
-
-    --accent: 35 99% 48%; /* #F18F01 */
-    --accent-foreground: 0 0% 100%; /* #FFFFFF */
-
-    --destructive: 6 78% 47%; /* #C0392B */
-    --destructive-foreground: 0 0% 98%; /* #FAFAFA */
-
-    --success: 145 50% 42%; /* #27AE60 */
-    --success-foreground: 0 0% 100%; /* #FFFFFF */
-
-    --border: 0 0% 25%; /* #404040 */
-    --input: 0 0% 25%; /* #404040 */
-    --ring: 198 57% 43%; /* #2E86AB */
-
-    --book-warm: 35 99% 48%; /* #F18F01 */
-    --book-maroon: 198 57% 43%; /* #2E86AB */
+    /* Book app specific colors */
+    --book-warm: 280 75% 60%;
+    --book-maroon: 265 60% 65%;
   }
 }
 
@@ -66,10 +63,11 @@
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
   }
 }
 
+/* Book carousel styles */
 .book-carousel::-webkit-scrollbar {
   display: none;
 }
@@ -79,8 +77,9 @@
   scrollbar-width: none;
 }
 
+/* Card styling */
 .book-card {
-  @apply rounded-md shadow-md transition-all duration-300;
+  @apply rounded-md transition-all duration-300;
 }
 
 .book-card:hover {
@@ -91,6 +90,54 @@
   @apply scale-110 transition-transform duration-300;
 }
 
+/* Hero and gradient styling */
 .hero-gradient {
-  background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%);
+  @apply bg-gradient-to-b from-black/80 via-black/40 to-transparent;
+}
+
+.purple-gradient {
+  @apply bg-gradient-to-r from-purple-700 to-indigo-700;
+}
+
+.purple-glass {
+  @apply bg-white/10 backdrop-blur-sm border border-white/20;
+}
+
+/* Card and UI interactions */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:shadow-primary/20;
+}
+
+.glass-card {
+  @apply bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl;
+}
+
+/* Button effects */
+.btn-glow {
+  @apply relative overflow-hidden;
+}
+
+.btn-glow::after {
+  @apply content-[''] absolute top-0 h-full w-full left-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full;
+  animation: btn-glow-slide 2s infinite;
+}
+
+@keyframes btn-glow-slide {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Reading progress circles */
+.reading-progress {
+  @apply relative flex items-center justify-center;
+}
+
+.reading-progress::before {
+  @apply content-[''] absolute h-full w-full rounded-full border-4 border-muted/30;
+}
+
+/* Text effects */
+.text-gradient {
+  @apply bg-gradient-to-r from-purple-500 to-violet-500 bg-clip-text text-transparent;
 }

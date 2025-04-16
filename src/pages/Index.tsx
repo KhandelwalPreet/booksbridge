@@ -12,11 +12,14 @@ import { useNearbyBooks } from '@/hooks/useNearbyBooks';
 import { useBookDetails } from '@/hooks/useBookDetails';
 import SearchResults from '@/components/search/SearchResults';
 import GenreCarousels from '@/components/genres/GenreCarousels';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { BookOpen, Users, MapPin, TrendingUp } from 'lucide-react';
+import MessageUI from '@/components/messaging/MessageUI';
 
 // List of genres for categorization
 const GENRES = [
-  "Fiction", "Romance", "Comedy", "Thriller", "Sci-Fi", 
-  "Biography", "Children", "History", "Mystery", "Non-fiction"
+  "Fiction", "Romance", "Mystery", "Sci-Fi", 
+  "Biography", "History", "Fantasy", "Non-fiction"
 ];
 
 const Index = () => {
@@ -76,7 +79,42 @@ const Index = () => {
       <main className="flex-grow pt-16">
         <HeroSection />
         
-        <div className="container mx-auto px-4 py-8">
+        <div className="container mx-auto px-4 py-12">
+          {/* Stats Section */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 max-w-4xl mx-auto">
+            <Card className="bg-gradient-to-br from-card to-secondary/80 border-secondary backdrop-blur-sm">
+              <CardContent className="p-6 flex flex-col items-center">
+                <BookOpen className="h-8 w-8 text-primary mb-2" />
+                <p className="text-2xl font-bold">5,000+</p>
+                <p className="text-sm text-muted-foreground text-center">Books Shared</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gradient-to-br from-card to-secondary/80 border-secondary backdrop-blur-sm">
+              <CardContent className="p-6 flex flex-col items-center">
+                <Users className="h-8 w-8 text-primary mb-2" />
+                <p className="text-2xl font-bold">2,000+</p>
+                <p className="text-sm text-muted-foreground text-center">Active Readers</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gradient-to-br from-card to-secondary/80 border-secondary backdrop-blur-sm">
+              <CardContent className="p-6 flex flex-col items-center">
+                <MapPin className="h-8 w-8 text-primary mb-2" />
+                <p className="text-2xl font-bold">150+</p>
+                <p className="text-sm text-muted-foreground text-center">Communities</p>
+              </CardContent>
+            </Card>
+            
+            <Card className="bg-gradient-to-br from-card to-secondary/80 border-secondary backdrop-blur-sm">
+              <CardContent className="p-6 flex flex-col items-center">
+                <TrendingUp className="h-8 w-8 text-primary mb-2" />
+                <p className="text-2xl font-bold">10K+</p>
+                <p className="text-sm text-muted-foreground text-center">Monthly Exchanges</p>
+              </CardContent>
+            </Card>
+          </div>
+          
           {/* Search Results */}
           <SearchResults 
             searchQuery={searchQuery}
@@ -86,25 +124,45 @@ const Index = () => {
           />
 
           {/* Recently Added Books */}
-          <BookCarousel 
-            title="Recently Added Books"
-            books={adaptBookListingsForCarousel(recentBooksData)}
-            onBookClick={handleBookClick}
-          />
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold mb-4 text-gradient">Recently Added Books</h2>
+            <BookCarousel 
+              title=""
+              books={adaptBookListingsForCarousel(recentBooksData)}
+              onBookClick={handleBookClick}
+            />
+          </div>
           
           {/* Popular Near You */}
-          <BookCarousel 
-            title="Popular Near You"
-            books={adaptBookListingsForCarousel(nearbyBooks)}
-            onBookClick={handleBookClick}
-          />
+          <div className="mb-10">
+            <h2 className="text-2xl font-bold mb-4 text-gradient">Popular Near You</h2>
+            <BookCarousel 
+              title=""
+              books={adaptBookListingsForCarousel(nearbyBooks)}
+              onBookClick={handleBookClick}
+            />
+          </div>
           
           {/* Genre-based carousels */}
-          <GenreCarousels 
-            genres={GENRES} 
-            allBooks={allBooks} 
-            onBookClick={handleBookClick} 
-          />
+          <div className="mb-16">
+            <h2 className="text-2xl font-bold mb-4 text-gradient">Explore by Genre</h2>
+            <GenreCarousels 
+              genres={GENRES} 
+              allBooks={allBooks} 
+              onBookClick={handleBookClick} 
+            />
+          </div>
+          
+          {/* Messaging Preview Section */}
+          <div className="my-16">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gradient">Connect with Fellow Readers</h2>
+              <p className="text-muted-foreground max-w-xl mx-auto mt-2">
+                Our messaging system makes it easy to coordinate book exchanges and discuss your favorite stories
+              </p>
+            </div>
+            <MessageUI />
+          </div>
         </div>
         
         {/* Book Detail Modal */}

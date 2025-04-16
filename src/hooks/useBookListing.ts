@@ -1,7 +1,8 @@
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { BookListing } from '@/types/database';
+import { useUserLocation } from '@/hooks/useUserLocation';
 
 interface UseBookListingResult {
   listBook: (bookData: any, location?: {latitude: number, longitude: number}) => Promise<BookListing | null>;
@@ -12,6 +13,7 @@ interface UseBookListingResult {
 export const useBookListing = (): UseBookListingResult => {
   const [listingLoading, setListingLoading] = useState<boolean>(false);
   const [listingError, setListingError] = useState<any>(null);
+  const { userLocation } = useUserLocation();
 
   const listBook = async (bookData: any, location?: {latitude: number, longitude: number}) => {
     try {
@@ -25,12 +27,32 @@ export const useBookListing = (): UseBookListingResult => {
         return null;
       }
 
+      // First, get the user's location from their profile
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('latitude, longitude')
+        .eq('id', session.user.id)
+        .single();
+      
+      if (profileError) {
+        console.error('Error fetching user profile:', profileError);
+      }
+
+      // Use either provided location, profile location, or fallback
+      const locationToUse = location || 
+        (profileData && profileData.latitude && profileData.longitude ? 
+          { latitude: profileData.latitude, longitude: profileData.longitude } : 
+          userLocation || 
+          { latitude: 0, longitude: 0 });
+
       const inventoryData = {
         ...bookData,
         lender_id: session.user.id,
-        latitude: location?.latitude || 0,
-        longitude: location?.longitude || 0
+        latitude: locationToUse.latitude,
+        longitude: locationToUse.longitude
       };
+
+      console.log('Listing book with location:', locationToUse);
 
       const { data, error } = await supabase
         .from('inventory_new')
